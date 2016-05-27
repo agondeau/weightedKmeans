@@ -1215,11 +1215,6 @@ static void CLUSTER_computeObjectWeightsViaSilhouette(data *dat, uint64_t n, uin
     }
 }
 
-            //SAY("ow[%ld] = %lf", i, ow[i]);
-        }
-    }
-}
-
 static void CLUSTER_removeNoise(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint64_t *nToRemove, uint32_t *kToRemove)
 {
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || nToRemove == NULL || kToRemove == NULL)
