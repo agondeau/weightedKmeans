@@ -1205,10 +1205,16 @@ static void CLUSTER_computeObjectWeightsViaSilhouette(data *dat, uint64_t n, uin
         // Calculate object weights
         for(i=0;i<n;i++)
         {
-            ow[i] = (s[i]/sk[dat[i].clusterID])*c[dat[i].clusterID].nbData;
-            if(isnan(ow[i]))
-                ow[i] = 0;
-            //ow[i] = 0.01;
+            // The sum of weights per cluster has to be equal to the number of data per cluster
+            if(c[dat[i].clusterID].nbData == 1)
+                ow[i] = 1.0;
+            else
+                ow[i] = (s[i]/sk[dat[i].clusterID])*c[dat[i].clusterID].nbData;
+            //SAY("ow[%ld] = %lf", i, ow[i]);
+        }
+    }
+}
+
             //SAY("ow[%ld] = %lf", i, ow[i]);
         }
     }
