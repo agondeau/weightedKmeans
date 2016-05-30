@@ -49,6 +49,7 @@ typedef enum _eDistanceType
 typedef enum _eMethodType 
 {
     METHOD_SILHOUETTE = 0,
+    METHOD_AVERAGE_SSE,
     METHOD_OTHER
 } eMethodType; 
 
@@ -273,6 +274,19 @@ static void CLUSTER_computeObjectWeights(data *dat, uint64_t n, uint64_t p, clus
  *  @return Void.
  */
 static void CLUSTER_computeObjectWeightsViaSilhouette(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
+
+/** @brief Computes objects weights via the average sum 
+ *         of squared errors.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param k The number of clusters. 
+ *  @param c The pointer to the clusters.
+ *  @param ow The pointer to the objects weights.
+ *  @return Void.
+ */
+static void CLUSTER_computeObjectWeightsViaAverageSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
 
 /** @brief Detects and removes noisy points.
  *
@@ -1131,6 +1145,11 @@ static void CLUSTER_computeObjectWeights(data *dat, uint64_t n, uint64_t p, clus
                     CLUSTER_computeObjectWeightsViaSilhouette(dat, n, p, c, k, ow);
                 }
                 break;
+            case METHOD_AVERAGE_SSE :
+                {
+                    CLUSTER_computeObjectWeightsViaAverageSSE(dat, n, p, c, k, ow);
+                }
+                break;
             case METHOD_OTHER:
                 {
                     WRN("Not implemented yet");
@@ -1210,6 +1229,57 @@ static void CLUSTER_computeObjectWeightsViaSilhouette(data *dat, uint64_t n, uin
                 ow[i] = 1.0;
             else
                 ow[i] = (s[i]/sk[dat[i].clusterID])*c[dat[i].clusterID].nbData;
+            //SAY("ow[%ld] = %lf", i, ow[i]);
+        }
+    }
+}
+
+static void CLUSTER_computeObjectWeightsViaAverageSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t i;
+        uint32_t l;
+        double avgSSE[k]; // Average SSE per cluster
+        //double squaredDist[n];
+        double dist[n];
+        double sumWeights[k];
+
+        for(l=0;l<k;l++)
+        {
+            avgSSE[l] = 0.0;
+            sumWeights[l] = 0.0;
+        }
+
+        // Compute average SSE per cluster
+        for(i=0;i<n;i++)
+        {
+            /*squaredDist[i] = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN);
+              avgSSE[dat[i].clusterID] += squaredDist[i] / (double) c[dat[i].clusterID].nbData;*/
+            dist[i] = CLUSTER_computeDistancePointToPoint(&(dat[i]), &(c[dat[i].clusterID]), p, DISTANCE_EUCLIDEAN);
+            avgSSE[dat[i].clusterID] += dist[i] / (double) c[dat[i].clusterID].nbData;
+        }
+
+        // Compute objects weights
+        for(i=0;i<n;i++)
+        {
+            //SAY("ow[%ld] = %lf", i, squaredDist[i] / avgSSE[dat[i].clusterID]);
+            //ow[i] = squaredDist[i] / avgSSE[dat[i].clusterID]; // Tmp
+            ow[i] = dist[i] / avgSSE[dat[i].clusterID];
+            sumWeights[dat[i].clusterID] += ow[i];
+        }
+
+        // The sum of weights per cluster has to be equal to the number of data per cluster
+        for(i=0;i<n;i++)
+        {
+            if(c[dat[i].clusterID].nbData == 1)
+                ow[i] = 1.0;
+            else
+                ow[i] = (ow[i] / sumWeights[dat[i].clusterID]) * (double) c[dat[i].clusterID].nbData;
             //SAY("ow[%ld] = %lf", i, ow[i]);
         }
     }
