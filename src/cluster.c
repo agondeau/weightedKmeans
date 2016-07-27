@@ -1325,9 +1325,9 @@ static double CLUSTER_assignDataToCentroids(data *dat, uint64_t n, uint64_t p, c
     }
 }
 
-static double CLUSTER_assignWeightedDataToCentroids(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *fw, double *ow)
+static double CLUSTER_assignDataToCentroids2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
 {
-    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || fw == NULL || ow == NULL)
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
     {
         ERR("Bad parameter");
         return -1;
@@ -1336,16 +1336,245 @@ static double CLUSTER_assignWeightedDataToCentroids(data *dat, uint64_t n, uint6
     {
         uint64_t i;
         uint32_t l;
-        double SSE = 0.0;
+
+        // Compute SSEref
+        double SSEref = CLUSTER_computeSSE(dat, n, p, c, k);
+
+        for(i=0;i<n;i++)
+        {
+            // For each cluster 
+            for(l=0;l<k;l++)
+            {
+                uint32_t curK = dat[i].clusterID; // Current clusterID for datum i
+                if((c[dat[i].clusterID].nbData-1) != 0 && l != dat[i].clusterID) // Avoid null cluster
+                {
+                    SAY("Try for cluster %d, dat[%ld].clusterID = %d", l, i, curK);
+
+                    c[dat[i].clusterID].nbData--; // Decrease previous cluster data number
+                    dat[i].clusterID = l; // Assign data to cluster
+                    c[dat[i].clusterID].nbData++; // Increase new cluster data number
+                    double SSE = CLUSTER_computeSSE(dat, n, p, c, k);
+
+                    if(SSE >= SSEref)
+                    {
+                        WRN("SSE not improved (SSEref = %lf, SSE = %lf)", SSEref, SSE);
+                        c[dat[i].clusterID].nbData--;
+                        dat[i].clusterID = curK;
+                        c[dat[i].clusterID].nbData++;
+                    }
+                    else
+                    {
+                        INF("SSE improved (SSEref = %lf, SSE = %lf)", SSEref, SSE);
+                        CLUSTER_computeCentroids(dat, n, p, c, k);
+                        // Update SSEref
+                        SSEref = SSE;
+
+                    }
+
+                    SAY("dat[%ld].clusterID = %d", i, dat[i].clusterID);
+                }
+            }
+
+            //SAY("dat[%ld] centroid : %d (nb data = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
+        }
+
+        return SSEref;
+    }
+}
+
+static double CLUSTER_assignDataToCentroids3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+
+        // Compute SSEref
+        double SSEref = CLUSTER_computeSSE(dat, n, p, c, k);
+
+        for(i=0;i<n;i++)
+        {
+            // For each cluster 
+            for(l=0;l<k;l++)
+            {
+                uint32_t curClu = dat[i].clusterID; // Current clusterID for datum i
+
+                if((c[dat[i].clusterID].nbData-1) != 0 && l != dat[i].clusterID) // Avoid null cluster
+                {
+                    double cluFromDim[p]; // Current datum cluster dimensions
+                    double cluToDim[p]; // Possible new datum cluster dimensions
+
+                    for(j=0;j<p;j++)
+                    {
+                        cluFromDim[j] = c[dat[i].clusterID].centroid[j];
+                        cluToDim[j] = c[l].centroid[j];              
+                    }
+
+                    SAY("Try for cluster %d, dat[%ld].clusterID = %d", l, i, curClu);
+
+                    c[dat[i].clusterID].nbData--; // Decrease previous cluster data number
+                    dat[i].clusterID = l; // Assign data to cluster
+                    c[dat[i].clusterID].nbData++; // Increase new cluster data number
+                    // Update centroids positions
+                    CLUSTER_computeCentroids(dat, n, p, c, k);
+
+                    // Compute new SSE
+                    double SSE = CLUSTER_computeSSE(dat, n, p, c, k);
+
+                    if(SSE >= SSEref)
+                    {
+                        WRN("SSE not improved (SSEref = %lf, SSE = %lf)", SSEref, SSE);
+                        c[dat[i].clusterID].nbData--;
+                        dat[i].clusterID = curClu;
+                        c[dat[i].clusterID].nbData++;
+
+                        // Reset centroids position
+                        for(j=0;j<p;j++)
+                        {
+                            c[dat[i].clusterID].centroid[j] = cluFromDim[j];
+                            c[l].centroid[j] = cluToDim[j];              
+                        }
+                    }
+                    else
+                    {
+                        INF("SSE improved (SSEref = %lf, SSE = %lf)", SSEref, SSE);
+                        // Update SSEref
+                        SSEref = SSE;
+                    }
+
+                    //SAY("dat[%ld].clusterID = %d", i, dat[i].clusterID);
+                }
+            }
+
+            //SAY("dat[%ld] centroid : %d (nb data = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
+        }
+
+        return SSEref;
+    }
+}
+
+static double CLUSTER_assignDataToCentroids5(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i, m, j;
+        uint32_t l;
+
+        // Compute SSEref
+        //double SSEref = CLUSTER_computeSSE(dat, n, p, c, k);
+
+        for(i=0;i<n;i++)
+        {
+            uint32_t clu = dat[i].clusterID; 
+
+            // For each cluster 
+            for(l=0;l<k;l++)
+            {
+                uint32_t curClu = dat[i].clusterID; // Current clusterID for datum i
+
+                if((c[dat[i].clusterID].nbData-1) != 0 && clu != dat[i].clusterID) // Avoid null cluster
+                {
+                    double cluFromDim[p]; // Current datum cluster dimensions
+                    double cluToDim[p]; // Possible new datum cluster dimensions
+
+                    for(j=0;j<p;j++)
+                    {
+                        cluFromDim[j] = c[dat[i].clusterID].centroid[j];
+                        cluToDim[j] = c[clu].centroid[j];              
+                    }
+
+                    //SAY("Try for cluster %d, dat[%ld].clusterID = %d", l, i, curClu);
+                    
+                    double distRef = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN);
+
+                    c[dat[i].clusterID].nbData--; // Decrease previous cluster data number
+                    dat[i].clusterID = clu; // Assign data to cluster
+                    c[dat[i].clusterID].nbData++; // Increase new cluster data number
+                    // Update centroids positions
+                    CLUSTER_computeCentroids(dat, n, p, c, k);
+
+                    // Compute new SSE
+                    //double SSE = CLUSTER_computeSSE(dat, n, p, c, k);
+
+                    double dist = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN);
+
+                    //if(SSE >= SSEref)
+                    if(dist >= distRef)
+                    {
+                        //WRN("SSE not improved (SSEref = %lf, SSE = %lf)", SSEref, SSE);
+                        c[dat[i].clusterID].nbData--;
+                        dat[i].clusterID = curClu;
+                        c[dat[i].clusterID].nbData++;
+
+                        // Reset centroids position
+                        for(j=0;j<p;j++)
+                        {
+                            c[dat[i].clusterID].centroid[j] = cluFromDim[j];
+                            c[clu].centroid[j] = cluToDim[j];              
+                        }
+                    }
+                    else
+                    {
+                        //INF("SSE improved (SSEref = %lf, SSE = %lf)", SSEref, SSE);
+                        // Update SSEref
+                        //SSEref = SSE;
+
+                    }
+
+                    //SAY("dat[%ld].clusterID = %d", i, dat[i].clusterID);
+                }
+                clu++;
+                if(clu >= k)
+                    clu = 0;
+            }
+
+            //SAY("dat[%ld] centroid : %d (nb data = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
+        }
+
+        return /*SSEref*/CLUSTER_computeSSE(dat, n, p, c, k);
+    }
+}
+
+static double CLUSTER_assignDataToCentroids6(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i, j, o;
+        uint32_t l;
+
+        // Compute SSEref
+        //double SSEref = CLUSTER_computeWeightedSSE(dat, n, p, c, k, fw, ow);
 
         for(i=0;i<n;i++)
         {
             double minDist;
+            double distClus;
             uint32_t minK;
             for(l=0;l<k;l++)
             {
                 // Calculate squared Euclidean distance
-                double dist = CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN, fw, ow[i]);
+                double dist = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN);
+
+                // Save distance between point and its own centroid
+                if(dat[i].clusterID == l)
+                {
+                    distClus = dist; 
+                }
 
                 if(l == 0)
                 {
@@ -1362,24 +1591,64 @@ static double CLUSTER_assignWeightedDataToCentroids(data *dat, uint64_t n, uint6
                 }
             }
 
-            if((c[dat[i].clusterID].nbData-1) != 0) // Avoid null cluster
+            uint32_t curClu = dat[i].clusterID; // Current clusterID for datum i
+            if((c[dat[i].clusterID].nbData-1) != 0 && minK != dat[i].clusterID) // Avoid null cluster
             {
+                double distRef = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN); 
+
+                //SAY("Try for cluster %d, dat[%ld].clusterID = %d", clu, i, curClu);
+
+                double cluFromDim[p]; // Current datum cluster dimensions
+                double cluToDim[p]; // Possible new datum cluster dimensions
+
+                for(j=0;j<p;j++)
+                {
+                    cluFromDim[j] = c[dat[i].clusterID].centroid[j];
+                    cluToDim[j] = c[minK].centroid[j];              
+                }
+
                 c[dat[i].clusterID].nbData--; // Decrease previous cluster data number
                 dat[i].clusterID = minK; // Assign data to cluster
                 c[dat[i].clusterID].nbData++; // Increase new cluster data number
-            }
+                // Update centroids position
+                CLUSTER_computeCentroids(dat, n, p, c, k);
 
-            SSE += minDist;
+                // Compute the new SSE value
+                //double SSE = CLUSTER_computeWeightedSSE(dat, n, p, c, k, fw, ow);
+                double d = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN);
+
+                if(d >= distRef)
+                    //if(SSE >= SSEref)
+                {
+                    //WRN("SSE not improved (SSEref = %lf, SSE = %lf)", SSEref, SSE);
+
+                    c[dat[i].clusterID].nbData--;
+                    dat[i].clusterID = curClu;
+                    c[dat[i].clusterID].nbData++;
+
+                    // Reset centroids position
+                    for(j=0;j<p;j++)
+                    {
+                        c[dat[i].clusterID].centroid[j] = cluFromDim[j];
+                        c[minK].centroid[j] = cluToDim[j];              
+                    }
+                }
+                else
+                {
+                    //INF("SSE improved (SSEref = %lf, SSE = %lf)", SSEref, SSE);
+
+                    // Update SSEref
+                    //SSEref = SSE;
+
+                }
+
+                //SAY("dat[%ld].clusterID = %d", i, dat[i].clusterID);
+            }
+        }
 
             //SAY("dat[%ld] centroid : %d (nb data = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
-        }
 
-        for(l=0;l<k;l++)
-        {
-            SAY("Cluster %d : %ld data", l, c[l].nbData);
-        }
-
-        return SSE;
+        return /*SSEref*/CLUSTER_computeSSE(dat, n, p, c, k);
     }
 }
 
