@@ -715,13 +715,19 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
             //double sil = CLUSTER_computeSilhouette(dat, n, p, c, k);
             //double sil = CLUSTER_computeSilhouette2(dat, n, p, c, k, dist);
             double sil = CLUSTER_computeSilhouette3(dat, n, p, c, k, dist);
+            //double sil2 = CLUSTER_computeWeightedSilhouette(dat, n, p, c, k, fw, ow);
+
+            //SAY("Silhouette = %lf, weighted silhouette = %lf", sil, sil2);
             SAY("Silhouette = %lf", sil);
 
             // Update SSE after noise deletion
-            //SSE = CLUSTER_computeSSE(dat, n, p, c, k, fw, ow);
+            //SSE = CLUSTER_computeWeightedSSE(dat, n, p, c, k, fw, ow);
+
+            // Compute the non-weighted SSE for statistics computation
+            double SSE = CLUSTER_computeSSE(dat, n, p, c, k);
 
             // Compute VRC statistic
-            SAY("TSS = %lf, SSE = %lf, n = %ld, k = %d", TSS, SSE, n, k);
+            SAY("TSS = %lf, SSE = %lf, wSSE = %lf, n = %ld, k = %d", TSS, SSE, wSSE, n, k);
             double vrc = CLUSTER_computeVRC(TSS, SSE, n, k);
             SAY("VRC = %lf", vrc);
 
