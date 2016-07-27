@@ -525,7 +525,7 @@ void CLUSTER_computeKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint
     // Initialize statistics
     for(k=kmax;k>=K_MIN;k--)
     {
-        statSil[k] = 0.0;
+        statSil[k] = -1.0;
         statVRC[k] = 0.0;
         statCH[k] = 0.0;
     }
@@ -583,7 +583,7 @@ void CLUSTER_computeKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint
     }
 
     // Retrieve the overall best statistics
-    double silMax = 0.0, vrcMax = 0.0, chMax = 0.0;
+    double silMax = -1.0, vrcMax = 0.0, chMax = 0.0;
     uint32_t kSilMax, kVrcMax, kChMax;
     for(k=kmax;k>=K_MIN;k--)
     {
@@ -638,7 +638,7 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
     // Initialize statistics
     for(k=kmax;k>=K_MIN;k--)
     {
-        statSil[k] = 0.0;
+        statSil[k] = -1.0;
         statVRC[k] = 0.0;
         statCH[k] = 0.0;
     }
@@ -730,7 +730,7 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
     }
 
     // Retrieve the overall best statistics
-    double silMax = 0.0, vrcMax = 0.0, chMax = 0.0;
+    double silMax = -1.0, vrcMax = 0.0, chMax = 0.0;
     uint32_t kSilMax, kVrcMax, kChMax;
     for(k=kmax;k>=K_MIN;k--)
     {
