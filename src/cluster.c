@@ -224,6 +224,24 @@ static double CLUSTER_weightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_
  */
 static double CLUSTER_computeSilhouette(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+static double CLUSTER_computeSilhouette2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double dist[n][n]);
+
+static double CLUSTER_computeSilhouette3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double **dist);
+
+/** @brief Computes the silhouette score with weights for a 
+ *         clustering.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param fw The features weights.
+ *  @param ow The pointer to the objects weights.
+ *  @return The computed silhouette score for the clustering.
+ */
+static double CLUSTER_computeWeightedSilhouette(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
+
 /** @brief Computes the distance between a point
  *         and an other point .
  *
