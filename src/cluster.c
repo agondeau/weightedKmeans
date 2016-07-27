@@ -321,9 +321,42 @@ static void CLUSTER_initObjectWeights(double *ow, uint64_t n);
 static void CLUSTER_initFeatureWeights(uint32_t k, uint64_t p, double fw[k][p]);
 
 /** @brief Computes features weights via different
+ *         methods.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param fw The features weights.
+ *  @param m The method for objects weights calculation.
  *  @return Void.
  */
-static void CLUSTER_initWeights(double *w, uint64_t dim);
+static void CLUSTER_computeFeatureWeights(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], eMethodType m);
+
+/** @brief Computes features weights via dispersion
+ *         score.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param k The number of clusters. 
+ *  @param c The pointer to the clusters.
+ *  @param fw The features weights.
+ *  @param norm The norm from Lp-spaces.
+ *  @return Void.
+ */
+static void CLUSTER_computeFeatureWeightsViaDispersion(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], uint8_t norm);
+
+/** @brief Computes feature dispersion.
+ *
+ *  @param dat The pointer to a datum.
+ *  @param p The specific dimension.
+ *  @param c The pointer to the cluster.
+ *  @param norm The norm from Lp-spaces.
+ *  @return The computed dispersion.
+ */
+static double CLUSTER_computeFeatureDispersion(data *dat, uint64_t p, cluster *c, uint8_t norm);
 
 /** @brief Computes objects weights via different
  *         methods.
