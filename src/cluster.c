@@ -3270,6 +3270,40 @@ static double CLUSTER_computeDistancePointToPoint(data *iDat, data *jDat, uint64
     }
 }
 
+static double CLUSTER_computeDistanceWeightedPointToPoint(data *iDat, data *jDat, uint64_t p, eDistanceType d, double *fw, double iOw)
+{
+    if(iDat == NULL || jDat == NULL || p < 1)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        double dist = 0;
+        switch(d)
+        {
+            default:
+            case DISTANCE_EUCLIDEAN:
+                {
+                    uint64_t j;
+                    for(j=0;j<p;j++)
+                    {
+                        dist += fw[j]*pow(((iDat->dim[j]) - (jDat->dim[j])), 2.0); // Apply features weights
+                    }
+                }
+                break;
+            case DISTANCE_OTHER:
+                {
+                    WRN("Not implemented yet");
+                    dist = -1;
+                }
+                break;
+        }
+
+        return iOw*sqrt(dist); // Apply i object weight
+    }
+}
+
 static double CLUSTER_computeTSS(data *dat, uint64_t n, uint64_t p)
 {
     if(dat == NULL || n < 2 || p < 1)
