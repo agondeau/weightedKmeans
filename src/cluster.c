@@ -2958,14 +2958,23 @@ static double CLUSTER_computeSilhouette(data *dat, uint64_t n, uint64_t p, clust
         uint64_t i,j;
         uint32_t l;
 
+        /*double **dist = malloc(n*sizeof(double *));
+          for(i=0;i<n;i++)
+          dist[i] = malloc(n*sizeof(double));*/
+
         // Initilize sik
         for(l=0;l<k;l++) 
             sk[l] = 0.0;
 
         // Create the distance matrix of i vs j
         for(i=0;i<n;i++)
+        {
             for (j=0;j<n;j++)
-                dist[i][j]= CLUSTER_computeDistancePointToPoint(&(dat[i]), &(dat[j]), p, DISTANCE_EUCLIDEAN);
+            {
+                dist[i][j] = CLUSTER_computeDistancePointToPoint(&(dat[i]), &(dat[j]), p, DISTANCE_EUCLIDEAN);
+                //SAY("dist[%ld][%ld] = %lf", i, j, dist[i][j]);
+            }
+        }
 
         for(i=0;i<n;i++)
         {
@@ -3001,24 +3010,21 @@ static double CLUSTER_computeSilhouette(data *dat, uint64_t n, uint64_t p, clust
         }
 
         double sil = 0.0;
-        //uint32_t kToRemove = 0;
         for(l=0;l<k;l++)
         {
-            SAY("sk[%d] = %lf", l, sk[l]);
-            /*if(sk[l] == 0.0)
-                kToRemove++;
-            else*/
-                if (!isnan(sk[l]))
-                    sil += sk[l];
+            //SAY("sk[%d] = %lf", l, sk[l]);
+            if (!isnan(sk[l]))
+                sil += sk[l];
         }
 
-        return (sil/k);
+        /*for(i=0;i<n;i++)
+          free(dist[i]);
+          free(dist);*/
 
-        // Handle null cluster
-        /*if((k-kToRemove) == 1)
-            return (sil/k);
-        else
-            return (sil/(k-kToRemove));*/
+        return (sil/k);
+    }
+}
+
     }
 }
 
