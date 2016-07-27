@@ -393,6 +393,32 @@ static void CLUSTER_computeObjectWeightsViaSilhouette2(data *dat, uint64_t n, ui
 
 static void CLUSTER_computeObjectWeightsViaSilhouette3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, double **dist);
 
+/** @brief Computes objects weights via the sum 
+ *         of squared errors.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param k The number of clusters. 
+ *  @param c The pointer to the clusters.
+ *  @param ow The pointer to the objects weights.
+ *  @return Void.
+ */
+static void CLUSTER_computeObjectWeightsViaSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
+
+/** @brief Computes objects weights via the angle 
+ *         based detection of outliers.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param k The number of clusters. 
+ *  @param c The pointer to the clusters.
+ *  @param ow The pointer to the objects weights.
+ *  @return Void.
+ */
+static void CLUSTER_computeObjectWeightsViaABOD(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
+
 /** @brief Computes objects weights via the average sum 
  *         of squared errors.
  *
