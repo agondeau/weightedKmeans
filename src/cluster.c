@@ -255,6 +255,20 @@ static double CLUSTER_computeWeightedSilhouette(data *dat, uint64_t n, uint64_t 
  */
 static double CLUSTER_computeDistancePointToPoint(data *iDat, data *jDat, uint64_t p, eDistanceType d);
 
+/** @brief Computes the distance between a weighted point
+ *         and an other point .
+ *
+ *  @param iDat The pointer to the first point.
+ *  @param jDat The pointer to the second point.
+ *  @param p The number of data dimensions.
+ *  @param d The type of distance calculation.
+ *  @param fw The pointer to the features weights.
+ *  @param ow The weight of the first object.
+ *  @return The computed distance between the first point 
+ *          and the second point.
+ */
+static double CLUSTER_computeDistanceWeightedPointToPoint(data *iDat, data *jDat, uint64_t p, eDistanceType d, double *fw, double iOw);
+
 /** @brief Computes the total sum of squares for 
  *         the data.
  *
