@@ -541,6 +541,7 @@ void CLUSTER_computeKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint
 
     for(i=0;i<nbRep;i++) // Number of replicates
     {
+        WRN("Iteration %d", i);
         for(k=kmax;k>=K_MIN;k--) // From kMax to kMin
         {
             INF("Compute for k = %d", k);
@@ -679,6 +680,7 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
 
     for(i=0;i<nbRep;i++) // Number of replicates
     {
+        WRN("Random start : %d", i);
         for(k=kmax;k>=K_MIN;k--) // From kMax to kMin
         {
             if(internalObjectWeights == true)
