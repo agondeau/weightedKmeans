@@ -3178,7 +3178,6 @@ static double CLUSTER_computeWeightedSilhouette(data *dat, uint64_t n, uint64_t 
         double a[n], b[n], s[n], sk[k], distCluster[k], dist[n][n];
         uint64_t i,j;
         uint32_t l;
-        double totWeightSum = 0.0; // Total sum of weights
 
         // Initilize sik
         for(l=0;l<k;l++) 
@@ -3625,6 +3624,7 @@ static void CLUSTER_computeObjectWeightsViaSilhouette(data *dat, uint64_t n, uin
         double a[n], b[n], s[n], sk[k], distCluster[k], dist[n][n];
         uint64_t i,j;
         uint32_t l;
+        double totWeightSum = 0.0; // Total sum of weights
 
         // Initilize sik
         for(l=0;l<k;l++) 
