@@ -49,8 +49,11 @@ typedef enum _eDistanceType
 typedef enum _eMethodType 
 {
     METHOD_SILHOUETTE = 0,
+    METHOD_SSE,
+    METHOD_ABOD,
     METHOD_AVERAGE_SSE,
     METHOD_MEDIAN,
+    METHOD_DISPERSION,
     METHOD_OTHER
 } eMethodType; 
 
