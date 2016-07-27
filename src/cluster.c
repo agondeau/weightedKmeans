@@ -708,8 +708,8 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
 
             // Remove noise
             /*uint32_t kToRemove = 0;
-            uint64_t nToRemove = 0; 
-            CLUSTER_removeNoise(dat, n, p, c, k, &nToRemove, &kToRemove);*/ 
+              uint64_t nToRemove = 0; 
+              CLUSTER_removeNoise(dat, n, p, c, k, &nToRemove, &kToRemove);*/ 
 
             // Compute silhouette statistic
             //double sil = CLUSTER_computeSilhouette(dat, n, p, c, k);
