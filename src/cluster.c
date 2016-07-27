@@ -32,6 +32,7 @@
 /* Macro defines. */
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+
 /* -- Enumerations -- */
 
 /** @brief Contains the different distance calculation types.
