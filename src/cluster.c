@@ -470,12 +470,27 @@ static void CLUSTER_removeNoise(data *dat, uint64_t n, uint64_t p, cluster *c, u
  *  @param n The number of the data.
  *  @param p The number of data dimensions.
  *  @param c The pointer to the clusters.
- *  @param fw The pointer to the features weights.
+ *  @return The computed sum of squared errors for a 
+ *          clustering.
+ */
+static double CLUSTER_computeSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
+/** @brief Computes the sum of squared errors for a 
+ *         clustering. 
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param fw The features weights.
  *  @param ow The pointer to the objects weights.
  *  @return The computed sum of squared errors for a 
  *          clustering.
  */
-static double CLUSTER_computeSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *fw, double *ow);
+static double CLUSTER_computeWeightedSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
+
+static double CLUSTER_computeWeightedSSE2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
+
 /** @brief Computes the matrix of distances 
  *         points to points. 
  *
