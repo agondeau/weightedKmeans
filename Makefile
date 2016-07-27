@@ -8,8 +8,8 @@ CC = gcc
 CFLAGS = -g -Wall #-Werror
 binary = kmeans
 
-all: main.c $(source_dir)/*
+all: main.c $(source_dir)/cluster.c
 	$(MKDIR_P) $(binary_dir)	
-	$(CC) $(CFLAGS) -o $(binary_dir)/$(binary) $(include_dir) $(source_dir)/* main.c -lm
+	$(CC) $(CFLAGS) -o $(binary_dir)/$(binary) $(include_dir) $(source_dir)/cluster.c main.c -lm
 clean:
 	$(RM) $(binary_dir)/$(binary)
