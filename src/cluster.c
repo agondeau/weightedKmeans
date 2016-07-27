@@ -567,15 +567,15 @@ void CLUSTER_computeKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint
             SAY("CH = %lf", ch);
 
             // Save best silhouette statistic for each k
-            if(sil > statSil[k])
+            if(sil > statSil[k] || i == 0)
                 statSil[k] = sil;
 
             // Save best VRC statistic for each k
-            if(vrc > statVRC[k])
+            if(vrc > statVRC[k] || i == 0)
                 statVRC[k] = vrc;
 
             // Save best CH statistic for each k
-            if(ch > statCH[k])
+            if(ch > statCH[k] || i == 0)
             {
                 statCH[k] = ch;
                 // Save data membership for each k (CH)
@@ -721,21 +721,21 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
             SAY("CH = %lf", ch);
 
             // Save best silhouette statistic for each k
-            if(sil > statSil[k])
+            if(sil > statSil[k] || i == 0)
             {
                 statSil[k] = sil;
                 /*for(j=0;j<n;j++)
-                {
-                    chGrp[k][j] = dat[j].clusterID;
-                }*/
+                  {
+                  chGrp[k][j] = dat[j].clusterID;
+                  }*/
             }
 
             // Save best VRC statistic for each k
-            if(vrc > statVRC[k])
+            if(vrc > statVRC[k] || i == 0)
                 statVRC[k] = vrc;
 
             // Save best CH statistic for each k
-            if(ch > statCH[k])
+            if(ch > statCH[k] || i == 0)
             {
                 statCH[k] = ch;
                 // Save data membership for each k (CH)
