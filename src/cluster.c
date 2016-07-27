@@ -4352,6 +4352,74 @@ static void CLUSTER_computeObjectWeightsViaMedian3(data *dat, uint64_t n, uint64
         }
     }
 }
+
+static void CLUSTER_removeNoise(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint64_t *nToRemove, uint32_t *kToRemove)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || nToRemove == NULL || kToRemove == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        /*double dst[n], distCluster[k], dist[n][n];
+          uint64_t i,j, avgDataPerCluster = 0;
+          uint32_t l;
+
+        // Initilize sik
+        for(l=0;l<k;l++)
+        {
+        avgDataPerCluster += (c[l].nbData / k);
+        distCluster[l] = 0.0;
+        }
+
+        // Create the distance matrix of i vs j
+        for(i=0;i<n;i++)
+        for (j=0;j<n;j++)
+        dist[i][j]= CLUSTER_computeDistancePointToPoint(&(dat[i]), &(dat[j]), p, DISTANCE_EUCLIDEAN);
+
+        for(i=0;i<n;i++)
+        {
+        // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
+        double d = 0.0;
+        for(j=0;j<n;j++)
+        {
+        if(j != i && dat[j].clusterID == dat[i].clusterID)
+        d += dist[i][j];
+
+        if((c[dat[i].clusterID].nbData - 1) == 0)
+        dst[i] = 0.0;
+        else
+        dst[i] = d/(double)(c[dat[i].clusterID].nbData - 1);
+        }
+
+        // Update average distance point to point per cluster 
+        distCluster[dat[i].clusterID] += dst[i] / (double)c[dat[i].clusterID].nbData;
+        }
+
+        for(i=0;i<n;i++)
+        {
+        SAY("dist[%ld] = %lf, cluster = %d, avgDistPerCluster[%d] = %lf", i, dst[i], dat[i].clusterID, dat[i].clusterID, distCluster[dat[i].clusterID]);
+        if(dst[i] > (distCluster[dat[i].clusterID]*1.5))
+        {
+        //if(dist[i] > (avgDistPerCluster[dat[i].clusterID]*1.25))
+        c[dat[i].clusterID].nbData--;
+        dat[i].clusterID = k;
+        }
+        }
+
+        for(l=0;l<k;l++)
+        {
+        SAY("c[%d].nbData = %ld, avgDataPerCluster = %ld", l, c[l].nbData, avgDataPerCluster);
+        if(c[l].nbData < (avgDataPerCluster / 1.5))
+        {
+        WRN("Cluster %d is a potential group of noise !", l);
+        for(i=0;i<n;i++)
+        if(dat[i].clusterID == l)
+        {
+        c[dat[i].clusterID].nbData--;
+        dat[i].clusterID = k; // k is the cluster of noise
+        }
+        }
         }*/
 
         uint32_t l;
