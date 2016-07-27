@@ -388,7 +388,27 @@ static void CLUSTER_removeNoise(data *dat, uint64_t n, uint64_t p, cluster *c, u
  *          clustering.
  */
 static double CLUSTER_computeSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *fw, double *ow);
+/** @brief Computes the matrix of distances 
+ *         points to points. 
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param dist The triple pointer to the matrix of distances.
+ *  @return Void.
+ */
+static void CLUSTER_ComputeMatDistPointToPoint(data *dat, uint64_t n, uint64_t p, double dist[n][n]);
 
+static void CLUSTER_ComputeMatDistPointToPoint2(data *dat, uint64_t n, uint64_t p, double ***dist);
+
+/** @brief Frees the matrix of distances 
+ *         points to points. 
+ *
+ *  @param n The number of the data.
+ *  @param dist The triple pointer to the matrix of distances.
+ *  @return Void.
+ */
+static void CLUSTER_FreeMatDistPointToPoint(uint64_t n, double ***dist);
 
 /* -- Function definitions -- */
 
