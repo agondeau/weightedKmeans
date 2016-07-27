@@ -2850,7 +2850,17 @@ static double CLUSTER_computeSquaredDistancePointToCluster(data *dat, uint64_t p
                 {
                     uint64_t j;
                     for(j=0;j<p;j++)
-                        dist += pow((dat->dim[j] - c->centroid[j]), 2.0);
+                    {
+                        double tmp = pow((dat->dim[j] - c->centroid[j]), 2.0);
+                        if(isnan(tmp))
+                        {
+                            dist += 0.0;
+                        }
+                        else
+                        {
+                            dist += tmp;
+                        }
+                    }
                 }
                 break;
             case DISTANCE_OTHER:
@@ -2874,7 +2884,7 @@ static double CLUSTER_computeSquaredDistanceWeightedPointToCluster(data *dat, ui
     }
     else
     {
-        double dist = 0;
+        double dist = 0.0;
         switch(d)
         {
             default:
@@ -2882,7 +2892,17 @@ static double CLUSTER_computeSquaredDistanceWeightedPointToCluster(data *dat, ui
                 {
                     uint64_t j;
                     for(j=0;j<p;j++)
-                        dist += fw[j]*pow((dat->dim[j] - c->centroid[j]), 2.0); // Apply feature weights
+                    {
+                        double tmp = fw[j]*pow((dat->dim[j] - c->centroid[j]), 2.0); // Apply feature weights
+                        if(isnan(tmp))
+                        {
+                            dist += 0.0;
+                        }
+                        else
+                        {
+                            dist += tmp;
+                        }
+                    }
                 }
                 break;
             case DISTANCE_OTHER:
