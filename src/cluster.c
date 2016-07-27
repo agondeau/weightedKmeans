@@ -825,34 +825,54 @@ static double CLUSTER_kmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, clus
         CLUSTER_fakeDataAssignmentToCentroids(dat, n, k);
         CLUSTER_randomCentroids(dat, n, p, c, k);
         CLUSTER_assignDataToCentroids(dat, n, p, c, k);
-        SAY("");
+        //CLUSTER_assignDataToCentroids2(dat, n, p, c, k);
+        //CLUSTER_assignDataToCentroids3(dat, n, p, c, k);
+        CLUSTER_computeCentroids(dat, n, p, c, k);
 
         uint8_t iter=0;
         double SSEref=1.0e20, SSE;
-        bool conv = false; 
+        bool conv = false; // Has converged
+        uint32_t cl[n];
         while(iter < NB_ITER && conv == false)
         {
-            CLUSTER_computeCentroids(dat, n, p, c, k);
-            SSE = CLUSTER_assignDataToCentroids(dat, n, p, c, k);
-            SAY("");
+            uint64_t i;
+            for(i=0;i<n;i++)
+                cl[i] = dat[i].clusterID;
 
-            SAY("SSEref = %lf, SSE = %lf", SSEref, SSE);
+            //CLUSTER_computeCentroids(dat, n, p, c, k);
+            //SSE = CLUSTER_assignDataToCentroids(dat, n, p, c, k);
+            //SSE = CLUSTER_assignDataToCentroids2(dat, n, p, c, k);
+            //SSE = CLUSTER_assignDataToCentroids3(dat, n, p, c, k);
+            //SSE = CLUSTER_assignDataToCentroids5(dat, n, p, c, k);
+            SSE = CLUSTER_assignDataToCentroids6(dat, n, p, c, k);
+
+            /*SAY("SSEref = %lf, SSE = %lf", SSEref, SSE);
             if(fabs(SSEref-SSE)>(SSE/1000.0))	
                 SSEref=SSE;
             else
             {
                 INF("Has converged in %d iterations", iter+1);            
                 conv = true;
+            }*/
+            conv = true;
+            for(i=0;i<n;i++)
+            {
+                if(dat[i].clusterID != cl[i])
+                {
+                    cl[i] = dat[i].clusterID;
+                    conv = false;
+                }
             }
 
             iter++;
         }
+        INF("Has converged in %d iterations", iter+1);
 
         return SSE; 
     }
 }
 
-static double CLUSTER_weightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double *fw, bool internalObjectWeights, double *ow)
+static double CLUSTER_weightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow)
 {
     if(dat == NULL || n < 2 || p < 1 || k < 2 || fw == NULL || ow == NULL)
     {
@@ -863,25 +883,91 @@ static double CLUSTER_weightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t
     {
         CLUSTER_fakeDataAssignmentToCentroids(dat, n, k);
         CLUSTER_randomCentroids(dat, n, p, c, k);
-        CLUSTER_assignWeightedDataToCentroids(dat, n, p, c, k, fw, ow);
-        SAY("");
+        //CLUSTER_assignWeightedDataToCentroids(dat, n, p, c, k, fw, ow);
+        //CLUSTER_assignWeightedDataToCentroids2(dat, n, p, c, k, fw, ow);
+        //CLUSTER_assignWeightedDataToCentroids3(dat, n, p, c, k, fw, ow);
+        //CLUSTER_assignWeightedDataToCentroids4(dat, n, p, c, k, fw, ow);
+        //SAY("");
+        CLUSTER_assignDataToCentroids(dat, n, p, c, k);
+        CLUSTER_computeCentroids(dat, n, p, c, k);
 
+        // Internal computation of objects weights
         if(internalObjectWeights == true)
         {
             // Calculate object weights
             CLUSTER_computeObjectWeights(dat, n, p, c, k, ow, METHOD_SILHOUETTE);
         }
 
+        // Internal computation of features weights
+        if(internalFeatureWeights == true)
+        {
+            CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, METHOD_DISPERSION);
+        }
+
         uint8_t iter = 0;
         double SSEref = 1.0e20, SSE;
-        bool conv = false; 
+        bool conv = false; // Has converged
+        uint32_t cl[n];
+        uint64_t i;
+        for(i=0;i<n;i++)
+            cl[i] = dat[i].clusterID;
         while(iter < NB_ITER && conv == false)
         {
-            CLUSTER_computeCentroids(dat, n, p, c, k);
-            SSE = CLUSTER_assignWeightedDataToCentroids(dat, n, p, c, k, fw, ow);
-            SAY("");
+            //CLUSTER_computeCentroids(dat, n, p, c, k);
+            //SSE = CLUSTER_assignWeightedDataToCentroids(dat, n, p, c, k, fw, ow);
+            //SSE = CLUSTER_assignWeightedDataToCentroids2(dat, n, p, c, k, fw, ow);
+            //SSE = CLUSTER_assignWeightedDataToCentroids3(dat, n, p, c, k, fw, ow);
+            //SSE = CLUSTER_assignWeightedDataToCentroids4(dat, n, p, c, k, fw, ow);
+            //SSE = CLUSTER_assignWeightedDataToCentroids7(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow);
 
-            if(internalObjectWeights == true)
+            SSE = CLUSTER_assignWeightedDataToCentroids9(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow);
+            //SAY("");
+
+            // Internal computation of objects weights
+            /*if(internalObjectWeights == true)
+            {
+                // Update object weights
+                CLUSTER_computeObjectWeights(dat, n, p, c, k, ow, METHOD_SILHOUETTE);
+                //CLUSTER_computeObjectWeights(dat, n, p, c, k, ow, METHOD_SSE);
+                //CLUSTER_computeObjectWeights(dat, n, p, c, k, ow, METHOD_AVERAGE_SSE);
+                //CLUSTER_computeObjectWeights(dat, n, p, c, k, ow, METHOD_MEDIAN);
+                SAY("Compute objects weights");
+                uint64_t i;
+                for(i=0;i<n;i++)
+                    SAY("ow[%ld] = %lf", i, ow[i]);
+            }*/
+
+            // Internal computation of features weights
+            /*if(internalFeatureWeights == true)
+            {
+                // Update features weights
+                CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, METHOD_DISPERSION);
+            }*/
+
+            /*SAY("SSEref = %lf, SSE = %lf", SSEref, SSE);
+            if(fabs(SSEref - SSE) > (SSE / 1000.0))
+                SSEref = SSE;
+            else
+            {
+                INF("Has converged in %d iterations", iter+1);            
+                conv = true;
+            }*/
+            conv = true;
+            for(i=0;i<n;i++)
+            {
+                if(dat[i].clusterID != cl[i])
+                {
+                    cl[i] = dat[i].clusterID;
+                    conv = false;
+                }
+            }
+
+            iter++;
+        }
+
+        return SSE; 
+    }
+}
 
 static double CLUSTER_weightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double dist[n][n])
 {
