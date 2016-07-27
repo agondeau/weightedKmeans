@@ -303,10 +303,24 @@ static double CLUSTER_computeVRC(double TSS, double SSE, uint64_t n, uint32_t k)
  */
 static double CLUSTER_computeCH(double TSS, double SSE, uint64_t n, uint32_t k); 
 
-/** @brief Initializes weights values to 1. 
+/** @brief Initializes objects weights to 1. 
  *
- *  @param w The pointer to the weights.
- *  @param dim The number of weights dimensions. 
+ *  @param ow The pointer to the objects weights.
+ *  @param n The number of objects. 
+ *  @return Void.
+ */
+static void CLUSTER_initObjectWeights(double *ow, uint64_t n);
+
+/** @brief Initializes features weights to 1. 
+ *
+ *  @param k The number of clusters
+ *  @param p The number of weights dimensions.
+ *  @param fw The features weights.
+ *  @return Void.
+ */
+static void CLUSTER_initFeatureWeights(uint32_t k, uint64_t p, double fw[k][p]);
+
+/** @brief Computes features weights via different
  *  @return Void.
  */
 static void CLUSTER_initWeights(double *w, uint64_t dim);
