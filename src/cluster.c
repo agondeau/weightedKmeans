@@ -327,6 +327,10 @@ static void CLUSTER_computeObjectWeights3(data *dat, uint64_t n, uint64_t p, clu
  */
 static void CLUSTER_computeObjectWeightsViaSilhouette(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
 
+static void CLUSTER_computeObjectWeightsViaSilhouette2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, double dist[n][n]);
+
+static void CLUSTER_computeObjectWeightsViaSilhouette3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, double **dist);
+
 /** @brief Computes objects weights via the average sum 
  *         of squared errors.
  *
