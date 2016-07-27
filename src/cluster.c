@@ -171,14 +171,18 @@ static double CLUSTER_kmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, clus
  *  @param internalFeatureWeights The boolean that 
  *           specified if the features weights come 
  *           from internal computation or from a file.
- *  @param fw The pointer to the features weights.
+ *  @param fw The features weights.
  *  @param internalObjectWeights The boolean that 
  *           specified if the objects weights come 
  *           from internal computation or from a file.
  *  @param ow The pointer to the objects weights.
  *  @return The sum of squared errors for the clustering.
  */
-static double CLUSTER_weightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double *fw, bool internalObjectWeights, double *ow);
+static double CLUSTER_weightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow);
+
+static double CLUSTER_weightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double dist[n][n]);
+
+static double CLUSTER_weightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
 
 /** @brief Computes the silhouette score for a 
  *         clustering.
