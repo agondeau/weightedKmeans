@@ -1273,11 +1273,18 @@ static double CLUSTER_assignDataToCentroids(data *dat, uint64_t n, uint64_t p, c
         for(i=0;i<n;i++)
         {
             double minDist;
+            double distClus;
             uint32_t minK;
             for(l=0;l<k;l++)
             {
                 // Calculate squared Euclidean distance
                 double dist = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN);
+
+                // Save distance between point and its own centroid
+                if(dat[i].clusterID == l)
+                {
+                    distClus = dist; 
+                }
 
                 if(l == 0)
                 {
@@ -1299,17 +1306,20 @@ static double CLUSTER_assignDataToCentroids(data *dat, uint64_t n, uint64_t p, c
                 c[dat[i].clusterID].nbData--; // Decrease previous cluster data number
                 dat[i].clusterID = minK; // Assign data to cluster
                 c[dat[i].clusterID].nbData++; // Increase new cluster data number
+                SSE += minDist;
+            }
+            else
+            {
+                SSE += distClus;
             }
 
-            SSE += minDist;
-
-            SAY("dat[%ld] centroid : %d (nb data = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
+            //SAY("dat[%ld] centroid : %d (nb data = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
         }
 
-        for(l=0;l<k;l++)
+        /*for(l=0;l<k;l++)
         {
             SAY("Cluster %d : %ld data", l, c[l].nbData);
-        }
+        }*/
 
         return SSE;
     }
