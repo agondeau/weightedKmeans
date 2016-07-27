@@ -14,9 +14,6 @@
 /* libc includes. */
 #include <stdlib.h>
 
-/* time header file. */
-#include <time.h>
-
 /* math header file. */
 #include <math.h>
 
@@ -740,8 +737,6 @@ static void CLUSTER_randomCentroids(data *dat, uint64_t n, uint64_t p, cluster *
         ERR("Bad parameter");
     else
     {
-        // Init randomness
-        srand(time(NULL));
 
         uint32_t l;
         uint64_t j;

@@ -16,6 +16,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/* time header file. */
+#include <time.h>
+
 /* string header file. */
 #include <string.h>
 
@@ -66,6 +69,9 @@ void usage(void);
  * @return The program state (SUCCESS/FAILURE).
  */
 int main(int argc, char *argv[]) {
+
+    // Init randomness
+    srand(time(NULL));
 
     // Project Informations
     COS("k-means : object weighted/feature weighted implementation");
