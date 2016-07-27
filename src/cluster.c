@@ -3178,6 +3178,7 @@ static double CLUSTER_computeWeightedSilhouette(data *dat, uint64_t n, uint64_t 
         double a[n], b[n], s[n], sk[k], distCluster[k], dist[n][n];
         uint64_t i,j;
         uint32_t l;
+        double totWeightSum = 0.0; // Total sum of weights
 
         // Initilize sik
         for(l=0;l<k;l++) 
@@ -3343,11 +3344,127 @@ static double CLUSTER_computeCH(double TSS, double SSE, uint64_t n, uint32_t k)
     return ( (TSS - SSE) / (double)(k - 1)) / tmp; 
 }
 
-static void CLUSTER_initWeights(double *w, uint64_t dim)
+static void CLUSTER_initObjectWeights(double *ow, uint64_t n)
 {
     uint64_t i;
-    for(i=0;i<dim;i++)
-        w[i] = 1.0;
+    for(i=0;i<n;i++)
+        ow[i] = 1.0;
+}
+
+static void CLUSTER_initFeatureWeights(uint32_t k, uint64_t p, double fw[k][p])
+{
+    uint64_t j;
+    uint32_t l;
+    for(l=0;l<k;l++)
+    {
+        for(j=0;j<p;j++)
+        {
+            fw[l][j] = 1.0;
+        }
+    }
+}
+
+static void CLUSTER_computeFeatureWeights(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], eMethodType m)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || fw == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        switch(m)
+        {
+            default:
+            case METHOD_DISPERSION :
+                {
+                    CLUSTER_computeFeatureWeightsViaDispersion(dat, n, p, c, k, fw, 2); // Using L2-norm
+                }
+                break;
+            case METHOD_OTHER:
+                {
+                    WRN("Not implemented yet");
+                }
+                break;
+        }
+    }
+}
+
+static void CLUSTER_computeFeatureWeightsViaDispersion(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], uint8_t norm)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || fw == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l,m;
+        double disp[k][p]; // Dispersion per cluster and per feature
+
+        // Initialization
+        for(l=0;l<k;l++)
+        {
+            for(j=0;j<p;j++)
+            {
+                disp[l][j] = 0.0;
+            }
+        }
+
+        // Compute dispersion
+        for(i=0;i<n;i++)
+        {
+            for(j=0;j<p;j++)
+            {
+                disp[dat[i].clusterID][j] += CLUSTER_computeFeatureDispersion(&(dat[i]), j, &(c[dat[i].clusterID]), norm);
+            }
+        }
+
+        // Compute weights
+        for(l=0;l<k;l++)
+        {
+            double tmp[p];
+            for(j=0;j<p;j++)
+            {
+                tmp[j] = 0.0;
+            }
+
+            for(j=0;j<p;j++)
+            {
+                for(m=0;m<p;m++)
+                {
+                    tmp[j] += pow((disp[l][j] / disp[l][m]),(1 / (norm - 1)));
+                    if(isnan(tmp[j]))
+                        tmp[j] = 0.0; 
+                }
+
+                if(c[l].nbData == 1)
+                {
+                    fw[l][j] = 1.0;
+                }
+                else
+                {
+                    // The sum of features weights as to be equal to the number of features
+                    fw[l][j] = (1 / tmp[j]) * p;
+                    if(isinf(fw[l][j]))
+                        fw[l][j] = 1.0; 
+                    //SAY("Weight[%d][%ld] = %lf", l, j, fw[l][j]);
+                }
+            }
+        }
+    }
+}
+
+static double CLUSTER_computeFeatureDispersion(data *dat, uint64_t p, cluster *c, uint8_t norm)
+{
+    if(dat == NULL || p < 0 || c == NULL || norm < 0)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        return pow(dat->dim[p] - c->centroid[p], norm); 
+    }
 }
 
 static void CLUSTER_computeObjectWeights(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, eMethodType m)
@@ -3366,6 +3483,16 @@ static void CLUSTER_computeObjectWeights(data *dat, uint64_t n, uint64_t p, clus
                     CLUSTER_computeObjectWeightsViaSilhouette(dat, n, p, c, k, ow);
                 }
                 break;
+            case METHOD_SSE :
+                {
+                    CLUSTER_computeObjectWeightsViaSSE(dat, n, p, c, k, ow);
+                }
+                break;
+            case METHOD_ABOD :
+                {
+                    CLUSTER_computeObjectWeightsViaABOD(dat, n, p, c, k, ow);
+                }
+                break;
             case METHOD_AVERAGE_SSE :
                 {
                     CLUSTER_computeObjectWeightsViaAverageSSE(dat, n, p, c, k, ow);
@@ -3373,7 +3500,109 @@ static void CLUSTER_computeObjectWeights(data *dat, uint64_t n, uint64_t p, clus
                 break;
             case METHOD_MEDIAN :
                 {
-                    CLUSTER_computeObjectWeightsViaMedian(dat, n, p, c, k, ow);
+                    //CLUSTER_computeObjectWeightsViaMedian(dat, n, p, c, k, ow);
+                    //WRN("Simple method");
+                    CLUSTER_computeObjectWeightsViaMedian2(dat, n, p, c, k, ow);
+                    //WRN("Complex method");
+                    //CLUSTER_computeObjectWeightsViaMedian3(dat, n, p, c, k, ow);
+                }
+                break;
+            case METHOD_OTHER:
+                {
+                    WRN("Not implemented yet");
+                }
+                break;
+        }
+    }
+}
+
+static void CLUSTER_computeObjectWeights2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, eMethodType m, double dist[n][n])
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        switch(m)
+        {
+            default:
+            case METHOD_SILHOUETTE :
+                {
+                    CLUSTER_computeObjectWeightsViaSilhouette2(dat, n, p, c, k, ow, dist);
+                }
+                break;
+            case METHOD_SSE :
+                {
+                    CLUSTER_computeObjectWeightsViaSSE(dat, n, p, c, k, ow);
+                }
+                break;
+            case METHOD_ABOD :
+                {
+                    CLUSTER_computeObjectWeightsViaABOD(dat, n, p, c, k, ow);
+                }
+                break;
+            case METHOD_AVERAGE_SSE :
+                {
+                    CLUSTER_computeObjectWeightsViaAverageSSE(dat, n, p, c, k, ow);
+                }
+                break;
+            case METHOD_MEDIAN :
+                {
+                    //CLUSTER_computeObjectWeightsViaMedian(dat, n, p, c, k, ow);
+                    //WRN("Simple method");
+                    //CLUSTER_computeObjectWeightsViaMedian2(dat, n, p, c, k, ow);
+                    //WRN("Complex method");
+                    CLUSTER_computeObjectWeightsViaMedian3(dat, n, p, c, k, ow);
+                }
+                break;
+            case METHOD_OTHER:
+                {
+                    WRN("Not implemented yet");
+                }
+                break;
+        }
+    }
+}
+
+static void CLUSTER_computeObjectWeights3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, eMethodType m, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        switch(m)
+        {
+            default:
+            case METHOD_SILHOUETTE :
+                {
+                    CLUSTER_computeObjectWeightsViaSilhouette3(dat, n, p, c, k, ow, dist);
+                }
+                break;
+            case METHOD_SSE :
+                {
+                    CLUSTER_computeObjectWeightsViaSSE(dat, n, p, c, k, ow);
+                }
+                break;
+            case METHOD_ABOD :
+                {
+                    CLUSTER_computeObjectWeightsViaABOD(dat, n, p, c, k, ow);
+                }
+                break;
+            case METHOD_AVERAGE_SSE :
+                {
+                    CLUSTER_computeObjectWeightsViaAverageSSE(dat, n, p, c, k, ow);
+                }
+                break;
+            case METHOD_MEDIAN :
+                {
+                    //CLUSTER_computeObjectWeightsViaMedian(dat, n, p, c, k, ow);
+                    //WRN("Simple method");
+                    //CLUSTER_computeObjectWeightsViaMedian2(dat, n, p, c, k, ow);
+                    //WRN("Complex method");
+                    CLUSTER_computeObjectWeightsViaMedian3(dat, n, p, c, k, ow);
                 }
                 break;
             case METHOD_OTHER:
@@ -3444,18 +3673,304 @@ static void CLUSTER_computeObjectWeightsViaSilhouette(data *dat, uint64_t n, uin
                 s[i] = 0.5;
 
             // Calculate sum of s[i] per cluster 
-            sk[dat[i].clusterID] += s[i]; 
+            sk[dat[i].clusterID] += s[i];
+            //totWeightSum += s[i];
+            
+            if(c[dat[i].clusterID].nbData == 1)
+            {
+                ow[i] = 1.0;
+            }
+            else
+            {
+                ow[i] = s[i];
+            }
+            //SAY("ow[%ld] = %lf, cluster %d", i, ow[i], dat[i].clusterID);
         }
 
         // Calculate object weights
-        for(i=0;i<n;i++)
+        /*for(i=0;i<n;i++)
         {
             // The sum of weights per cluster has to be equal to the number of data per cluster
             if(c[dat[i].clusterID].nbData == 1)
                 ow[i] = 1.0;
             else
-                ow[i] = (s[i]/sk[dat[i].clusterID])*c[dat[i].clusterID].nbData;
+            {
+                //ow[i] = (s[i]/sk[dat[i].clusterID])*c[dat[i].clusterID].nbData;
+                //ow[i] = (s[i]/totWeightSum) * (double) n;
+                ow[i] = s[i];
+            }
             //SAY("ow[%ld] = %lf", i, ow[i]);
+        }*/
+    }
+}
+
+static void CLUSTER_computeObjectWeightsViaSilhouette2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, double dist[n][n])
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        double a[n], b[n], s[n], sk[k], distCluster[k];
+        uint64_t i,j;
+        uint32_t l;
+        double totWeightSum = 0.0; // Total sum of weights
+
+        // Initilize sik
+        for(l=0;l<k;l++) 
+            sk[l] = 0.0;
+
+        for(i=0;i<n;i++)
+        {
+            // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
+            double d = 0.0;
+            for(j=0;j<n;j++)
+            {
+                if(j != i && dat[j].clusterID == dat[i].clusterID)
+                    d += dist[i][j];
+
+                if((c[dat[i].clusterID].nbData - 1) == 0)
+                    a[i] = 0.0;
+                else
+                    a[i] = d/(double)(c[dat[i].clusterID].nbData - 1);
+            }
+
+            // Calculate b[i], the lowest average dissimilarity of i to any other cluster, of which i is not a member
+            for(l=0;l<k;l++)
+                distCluster[l] = 0.0;
+
+            for(j=0;j<n;j++)
+                if(dat[j].clusterID != dat[i].clusterID)
+                    distCluster[dat[j].clusterID] += (dist[i][j]/c[dat[j].clusterID].nbData);
+            b[i] = 1.0e20;
+            for(l=0;l<k;l++)
+                if(l != dat[i].clusterID && distCluster[l] != 0 && distCluster[l] < b[i])
+                    b[i] = distCluster[l];
+
+            // Calculate s[i]
+            s[i] = (b[i] != a[i]) ?  (b[i] - a[i]) / fmax(a[i], b[i]) : 0.0;
+
+            //SAY("s[%ld] = %lf", i, s[i]);
+
+            if(s[i] < 0 || s[i] > 0)
+                s[i] = 1 - ((s[i]+1)/2); // Rescale silhouette to 0-1 
+            else // si = 0
+                s[i] = 0.5;
+
+            // Calculate sum of s[i] per cluster 
+            sk[dat[i].clusterID] += s[i];
+            //totWeightSum += s[i];
+            
+            if(c[dat[i].clusterID].nbData == 1)
+            {
+                ow[i] = 1.0;
+            }
+            else
+            {
+                ow[i] = s[i];
+            }
+            //SAY("ow[%ld] = %lf, cluster %d", i, ow[i], dat[i].clusterID);
+        }
+
+        // Calculate object weights
+        /*for(i=0;i<n;i++)
+        {
+            // The sum of weights per cluster has to be equal to the number of data per cluster
+            if(c[dat[i].clusterID].nbData == 1)
+                ow[i] = 1.0;
+            else
+            {
+                //ow[i] = (s[i]/sk[dat[i].clusterID])*c[dat[i].clusterID].nbData;
+                //ow[i] = (s[i]/totWeightSum) * (double) n;
+                ow[i] = s[i];
+            }
+            //SAY("ow[%ld] = %lf", i, ow[i]);
+        }*/
+    }
+}
+
+static void CLUSTER_computeObjectWeightsViaSilhouette3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        double a[n], b[n], s[n], sk[k], distCluster[k];
+        uint64_t i,j;
+        uint32_t l;
+        double totWeightSum = 0.0; // Total sum of weights
+
+        // Initilize sik
+        for(l=0;l<k;l++) 
+            sk[l] = 0.0;
+
+        for(i=0;i<n;i++)
+        {
+            // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
+            double d = 0.0;
+            for(j=0;j<n;j++)
+            {
+                if(j != i && dat[j].clusterID == dat[i].clusterID)
+                    d += dist[i][j];
+
+                if((c[dat[i].clusterID].nbData - 1) == 0)
+                    a[i] = 0.0;
+                else
+                    a[i] = d/(double)(c[dat[i].clusterID].nbData - 1);
+            }
+
+            // Calculate b[i], the lowest average dissimilarity of i to any other cluster, of which i is not a member
+            for(l=0;l<k;l++)
+                distCluster[l] = 0.0;
+
+            for(j=0;j<n;j++)
+                if(dat[j].clusterID != dat[i].clusterID)
+                    distCluster[dat[j].clusterID] += (dist[i][j]/c[dat[j].clusterID].nbData);
+            b[i] = 1.0e20;
+            for(l=0;l<k;l++)
+                if(l != dat[i].clusterID && distCluster[l] != 0 && distCluster[l] < b[i])
+                    b[i] = distCluster[l];
+
+            // Calculate s[i]
+            s[i] = (b[i] != a[i]) ?  (b[i] - a[i]) / fmax(a[i], b[i]) : 0.0;
+
+            //SAY("s[%ld] = %lf", i, s[i]);
+
+            if(s[i] < 0 || s[i] > 0)
+                s[i] = 1 - ((s[i]+1)/2); // Rescale silhouette to 0-1 
+            else // si = 0
+                s[i] = 0.5;
+
+            // Calculate sum of s[i] per cluster 
+            sk[dat[i].clusterID] += s[i];
+            //totWeightSum += s[i];
+            
+            if(c[dat[i].clusterID].nbData == 1)
+            {
+                ow[i] = 1.0;
+            }
+            else
+            {
+                ow[i] = s[i];
+            }
+            //SAY("ow[%ld] = %lf, cluster %d", i, ow[i], dat[i].clusterID);
+        }
+
+        // Calculate object weights
+        /*for(i=0;i<n;i++)
+        {
+            // The sum of weights per cluster has to be equal to the number of data per cluster
+            if(c[dat[i].clusterID].nbData == 1)
+                ow[i] = 1.0;
+            else
+            {
+                //ow[i] = (s[i]/sk[dat[i].clusterID])*c[dat[i].clusterID].nbData;
+                //ow[i] = (s[i]/totWeightSum) * (double) n;
+                ow[i] = s[i];
+            }
+            //SAY("ow[%ld] = %lf", i, ow[i]);
+        }*/
+    }
+}
+
+static void CLUSTER_computeObjectWeightsViaSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t i;
+        uint32_t l;
+        double squaredDist[n]; // Squared distance from points to clusters
+        double sumSSE[k]; // SSE per cluster
+        double totSSE = 0.0; // Total SSE
+
+        for(l=0;l<k;l++)
+        {
+            sumSSE[l] = 0.0;
+        }
+
+        // Compute SSE per cluster
+        for(i=0;i<n;i++)
+        {
+            squaredDist[i] = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN);
+            sumSSE[dat[i].clusterID] += squaredDist[i];
+            totSSE += squaredDist[i];
+        }
+
+        // Compute objects weights
+        for(i=0;i<n;i++)
+        {
+            // The sum of weights per cluster has to be equal to the number of data per cluster
+            if(c[dat[i].clusterID].nbData == 1)
+            {
+                ow[i] = 1.0;
+            }
+            else
+            {
+                //ow[i] = (squaredDist[i] / sumSSE[dat[i].clusterID]) * (double) c[dat[i].clusterID].nbData;
+                //ow[i] = (squaredDist[i] / totSSE) /** (double) n*/;
+                ow[i] = squaredDist[i];
+            }
+            //SAY("ow[%ld] = %lf, c %d", i, ow[i], dat[i].clusterID);
+        }
+    }
+}
+
+static void CLUSTER_computeObjectWeightsViaABOD(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t i, j, m;
+        uint32_t l;
+
+        for(l=0;l<k;l++)
+        {
+            for(i=0;i<n;i++)
+            {
+                // Retrieve all data in the i datum cluster
+                double datClu[c[dat[i].clusterID].nbData - 1][p];
+                uint64_t o = 0;
+                for(m=0;m<n;m++)
+                {
+                    if(dat[m].clusterID == dat[i].clusterID && m != i)
+                    {
+                        for(j=0;j<p;j++)
+                        {
+                            datClu[o][j] = dat[m].dim[j];
+                        }
+                        o++;
+                    }
+                }
+                
+                for(m=0;m<(c[dat[i].clusterID].nbData - 1);m++)
+                {
+                    for(o=0;o<(c[dat[i].clusterID].nbData - 1);o++)
+                    {
+                        if(o != m)
+                        {
+                            double len = 0.0;
+                            double mi = 0.0;
+                            double io = 0.0;
+                            for(j=0;j<p;j++)
+                            {
+                                len += (dat[i].dim[j] - datClu[m][j]) * (datClu[o][j] - dat[i].dim[j]);
+                                mi += pow((dat[i].dim[j] - datClu[m][j]), 2.0);
+                                io += pow((datClu[o][j] - dat[i].dim[j]), 2.0);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -3581,73 +4096,262 @@ static void CLUSTER_computeObjectWeightsViaMedian(data *dat, uint64_t n, uint64_
     }
 }
 
-static void CLUSTER_removeNoise(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint64_t *nToRemove, uint32_t *kToRemove)
+static void CLUSTER_computeObjectWeightsViaMedian2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow)
 {
-    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || nToRemove == NULL || kToRemove == NULL)
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
     {
         ERR("Bad parameter");
     }
     else
     {
-        /*double dst[n], distCluster[k], dist[n][n];
-        uint64_t i,j, avgDataPerCluster = 0;
+        uint64_t i, j;
         uint32_t l;
-
-        // Initilize sik
+        double median[k][p]; // Median per cluster
+        double w[n]; // Tmp weights
+        double sumWeights[k]; // Sum of weights per clusters
+        double totWeightSum = 0.0; // Total sum of weights
+        
         for(l=0;l<k;l++)
         {
-            avgDataPerCluster += (c[l].nbData / k);
-            distCluster[l] = 0.0;
-        }
+            double datPerCluster[c[l].nbData][p];
+            uint64_t m = 0;
 
-        // Create the distance matrix of i vs j
-        for(i=0;i<n;i++)
-            for (j=0;j<n;j++)
-                dist[i][j]= CLUSTER_computeDistancePointToPoint(&(dat[i]), &(dat[j]), p, DISTANCE_EUCLIDEAN);
-
-        for(i=0;i<n;i++)
-        {
-            // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
-            double d = 0.0;
-            for(j=0;j<n;j++)
+            for(i=0;i<n;i++)
             {
-                if(j != i && dat[j].clusterID == dat[i].clusterID)
-                    d += dist[i][j];
+                if(dat[i].clusterID == l)
+                {
+                    for(j=0;j<p;j++)
+                    {
+                        datPerCluster[m][j] = dat[i].dim[j];
+                    }
+                    m++;
+                }
+            }
 
-                if((c[dat[i].clusterID].nbData - 1) == 0)
-                    dst[i] = 0.0;
+            // Sort each dimension in the ascending way
+            double tmp;
+            for(i=0;i<c[l].nbData;i++)
+            {
+                for(m=i+1;m<c[l].nbData;m++)
+                {
+                    for(j=0;j<p;j++)
+                    {
+                        if(datPerCluster[i][j] > datPerCluster[m][j])
+                        {
+                            tmp = datPerCluster[i][j];
+                            datPerCluster[i][j] = datPerCluster[m][j];
+                            datPerCluster[m][j] = tmp;
+                        }
+                    }
+                }
+            }
+
+            // Compute the median
+            for(j=0;j<p;j++)
+            {
+                if(!(c[l].nbData % 2))
+                {
+                    median[l][j] = (datPerCluster[(c[l].nbData / 2)][j] + datPerCluster[(c[l].nbData / 2) - 1][j]) / 2;
+                }
                 else
-                    dst[i] = d/(double)(c[dat[i].clusterID].nbData - 1);
-            }
-
-            // Update average distance point to point per cluster 
-            distCluster[dat[i].clusterID] += dst[i] / (double)c[dat[i].clusterID].nbData;
-        }
-
-        for(i=0;i<n;i++)
-        {
-            SAY("dist[%ld] = %lf, cluster = %d, avgDistPerCluster[%d] = %lf", i, dst[i], dat[i].clusterID, dat[i].clusterID, distCluster[dat[i].clusterID]);
-            if(dst[i] > (distCluster[dat[i].clusterID]*1.5))
-            {
-                //if(dist[i] > (avgDistPerCluster[dat[i].clusterID]*1.25))
-                c[dat[i].clusterID].nbData--;
-                dat[i].clusterID = k;
+                {
+                    median[l][j] = datPerCluster[((c[l].nbData + 1) / 2) - 1][j];
+                }
+                //SAY("median[%d][%ld] = %lf", l, j, median[l][j]);
             }
         }
 
         for(l=0;l<k;l++)
         {
-            SAY("c[%d].nbData = %ld, avgDataPerCluster = %ld", l, c[l].nbData, avgDataPerCluster);
-            if(c[l].nbData < (avgDataPerCluster / 1.5))
+            sumWeights[l] = 0.0;
+        }
+
+        // Compute tmp weights
+        for(i=0;i<n;i++)
+        {
+            // Initialize tmp weights
+            w[i] = 0.0;
+
+            for(j=0;j<p;j++)
             {
-                WRN("Cluster %d is a potential group of noise !", l);
+                w[i] += pow((dat[i].dim[j] - median[dat[i].clusterID][j]), 2.0); 
+            }
+
+            sumWeights[dat[i].clusterID] += w[i];
+            totWeightSum += w[i];
+        }
+
+        // Compute objects weights
+        for(i=0;i<n;i++)
+        {
+            if(c[dat[i].clusterID].nbData == 1)
+            {
+                ow[i] = 1.0;
+            }
+            else
+            {
+                //ow[i] = (w[i] / sumWeights[dat[i].clusterID]) * (double) c[dat[i].clusterID].nbData;
+                //ow[i] = (w[i] / totWeightSum) /** (double) n*/;
+                ow[i] = w[i];
+            }
+            //SAY("ow[%ld] = %lf, c = %d", i, ow[i], dat[i].clusterID);
+        }
+    }
+}
+
+static void CLUSTER_computeObjectWeightsViaMedian3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        // Improved Weiszfeld algorithm calculation
+        uint64_t i, j;
+        uint32_t l;
+        double y[k][p]; // Median per cluster
+        double eps = 1e-5; // Convergence criterion
+        double w[n]; // Tmp weights 
+        double sumWeights[k]; // Sum of weights per cluster
+        double totWeightSum = 0.0; // Total sum of weights
+        uint8_t nbIt = 0; // Number of iteration
+
+        for(l=0;l<k;l++)
+        {
+            bool conv = false; // Has converged
+
+            // Initialization of medians to the cluster average
+            for(j=0;j<p;j++)
+            {
+                y[l][j] = c[l].centroid[j];
+            }
+
+            while(conv == false && nbIt < 100)
+            {
+                double sum1[p]; // 1 / (y - xi)²
+                double sum2[p]; // xi / (y - xi)²
+                double r[p]; // xi - y / (xi - y)²
+                double T[p];
+                double y1[p]; // Tmp median
+                double convDist = 0.0;
+
+                for(j=0;j<p;j++)
+                {
+                    sum1[j] = 0.0;
+                    sum2[j] = 0.0;
+                    r[j] = 0.0;
+                }
+
                 for(i=0;i<n;i++)
+                {
                     if(dat[i].clusterID == l)
                     {
-                        c[dat[i].clusterID].nbData--;
-                        dat[i].clusterID = k; // k is the cluster of noise
+                        for(j=0;j<p;j++)
+                        {
+                            double tmp = pow((y[l][j] - dat[i].dim[j]), 2.0);
+                            if(tmp == 0.0)
+                                sum1[j] += 0.0;
+                            else
+                                sum1[j] += 1 / tmp;
+
+                            if(tmp == 0)
+                            {
+                                sum2[j] += 0.0;
+                            }
+                            else
+                            {
+                                sum2[j] += dat[i].dim[j] / tmp;
+                            }
+    
+                            tmp = pow((dat[i].dim[j] - y[l][j]), 2.0);
+                            
+                            if(tmp == 0)
+                            {
+                                r[j] += 0.0;
+                            }
+                            else
+                            {
+                                r[j] += (dat[i].dim[j] - y[l][j]) / tmp;
+                            }
+                        }  
+                    }    
+                }
+
+                for(j=0;j<p;j++)
+                {
+                    if(sum1[j] == 0 || sum2[j] == 0)
+                    {
+                        T[j] = 0.0;
                     }
+                    else
+                    {
+                        T[j] = (1 / sum1[j]) * sum2[j];
+                    }
+
+                    if(r[j] == 0)
+                    {
+                        y1[j] = (MAX(0, (1 - 0)) * T[j]) + (MIN(1, 0) * y[l][j]);
+                    }
+                    else
+                    {
+                        y1[j] = (MAX(0, (1 - (1 / pow(r[j], 2.0)))) * T[j]) + (MIN(1, (1 / pow(r[j], 2.0))) * y[l][j]);
+                    }
+                    convDist += pow((y[l][j] - y1[j]), 2.0);
+
+                    // Update median 
+                    y[l][j] = y1[j];    
+                    //SAY("y[%d][%ld] = %lf", l, j, y[l][j]); 
+                }
+
+                // Test convergence
+                if(convDist < eps)
+                {
+                    conv = true;
+                }
+
+                nbIt++;
             }
+        }
+
+        // Compute objects weights
+        for(l=0;l<k;l++)
+        {
+            sumWeights[l] = 0.0;
+        }
+
+        // Compute tmp weights
+        for(i=0;i<n;i++)
+        {
+            // Initialize tmp weights
+            w[i] = 0.0;
+
+            for(j=0;j<p;j++)
+            {
+                w[i] += pow((dat[i].dim[j] - y[dat[i].clusterID][j]), 2.0); 
+            }
+
+            sumWeights[dat[i].clusterID] += w[i];
+            totWeightSum += w[i];
+        }
+
+        // Compute objects weights
+        for(i=0;i<n;i++)
+        {
+            if(c[dat[i].clusterID].nbData == 1)
+            {
+                ow[i] = 1.0;
+            }
+            else
+            {
+                //ow[i] = (w[i] / sumWeights[dat[i].clusterID]) * (double) c[dat[i].clusterID].nbData;
+                ow[i] = (w[i] / totWeightSum) * (double) n;
+                //ow[i] = w[i];
+            }
+            //SAY("ow[%ld] = %lf, c = %d", i, ow[i], dat[i].clusterID);
+        }
+    }
+}
         }*/
 
         uint32_t l;
