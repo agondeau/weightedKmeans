@@ -3025,6 +3025,216 @@ static double CLUSTER_computeSilhouette(data *dat, uint64_t n, uint64_t p, clust
     }
 }
 
+static double CLUSTER_computeSilhouette2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double dist[n][n])
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -2.0;
+    }
+    else
+    {
+        double a[n], b[n], s[n], sk[k], distCluster[k];
+        uint64_t i,j;
+        uint32_t l;
+
+        /*double **dist = malloc(n*sizeof(double *));
+          for(i=0;i<n;i++)
+          dist[i] = malloc(n*sizeof(double));*/
+
+        // Initilize sik
+        for(l=0;l<k;l++) 
+            sk[l] = 0.0;
+
+        for(i=0;i<n;i++)
+        {
+            // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
+            double d = 0.0;
+            for(j=0;j<n;j++)
+            {
+                if(j != i && dat[j].clusterID == dat[i].clusterID)
+                    d += dist[i][j];
+
+                if((c[dat[i].clusterID].nbData - 1) == 0)
+                    a[i] = 0.0;
+                else
+                    a[i] = d/(double)(c[dat[i].clusterID].nbData - 1);
+            }
+
+            // Calculate b[i], the lowest average dissimilarity of i to any other cluster, of which i is not a member
+            for(l=0;l<k;l++)
+                distCluster[l] = 0.0;
+
+            for(j=0;j<n;j++)
+                if(dat[j].clusterID != dat[i].clusterID)
+                    distCluster[dat[j].clusterID] += (dist[i][j]/c[dat[j].clusterID].nbData);
+            b[i] = 1.0e20;
+            for(l=0;l<k;l++)
+                if(l != dat[i].clusterID && distCluster[l] != 0 && distCluster[l] < b[i])
+                    b[i] = distCluster[l];
+
+            // Calculate s[i]
+            s[i] = (b[i] != a[i]) ?  (b[i] - a[i]) / fmax(a[i], b[i]) : 0.0;
+            //SAY("i = %ld, s[i] = %lf, b[i] = %lf, a[i] = %lf, dat[i].clusterID = %d, c[dat[i].clusterID].nbData = %ld", i, s[i], b[i], a[i], dat[i].clusterID, c[dat[i].clusterID].nbData);
+            sk[dat[i].clusterID]+= s[i] / (double)c[dat[i].clusterID].nbData;
+        }
+
+        double sil = 0.0;
+        for(l=0;l<k;l++)
+        {
+            //SAY("sk[%d] = %lf", l, sk[l]);
+            if (!isnan(sk[l]))
+                sil += sk[l];
+        }
+
+        /*for(i=0;i<n;i++)
+          free(dist[i]);
+          free(dist);*/
+
+        return (sil/k);
+    }
+}
+
+static double CLUSTER_computeSilhouette3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -2.0;
+    }
+    else
+    {
+        double a[n], b[n], s[n], sk[k], distCluster[k];
+        uint64_t i,j;
+        uint32_t l;
+
+        /*double **dist = malloc(n*sizeof(double *));
+          for(i=0;i<n;i++)
+          dist[i] = malloc(n*sizeof(double));*/
+
+        // Initilize sik
+        for(l=0;l<k;l++) 
+            sk[l] = 0.0;
+
+        for(i=0;i<n;i++)
+        {
+            // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
+            double d = 0.0;
+            for(j=0;j<n;j++)
+            {
+                //WRN("dist[%ld][%ld] = %lf", i, j, dist[i][j]);
+                if(j != i && dat[j].clusterID == dat[i].clusterID)
+                    d += dist[i][j];
+
+                if((c[dat[i].clusterID].nbData - 1) == 0)
+                    a[i] = 0.0;
+                else
+                    a[i] = d/(double)(c[dat[i].clusterID].nbData - 1);
+            }
+
+            // Calculate b[i], the lowest average dissimilarity of i to any other cluster, of which i is not a member
+            for(l=0;l<k;l++)
+                distCluster[l] = 0.0;
+
+            for(j=0;j<n;j++)
+                if(dat[j].clusterID != dat[i].clusterID)
+                    distCluster[dat[j].clusterID] += (dist[i][j]/c[dat[j].clusterID].nbData);
+            b[i] = 1.0e20;
+            for(l=0;l<k;l++)
+                if(l != dat[i].clusterID && distCluster[l] != 0 && distCluster[l] < b[i])
+                    b[i] = distCluster[l];
+
+            // Calculate s[i]
+            s[i] = (b[i] != a[i]) ?  (b[i] - a[i]) / fmax(a[i], b[i]) : 0.0;
+            //SAY("i = %ld, s[i] = %lf, b[i] = %lf, a[i] = %lf, dat[i].clusterID = %d, c[dat[i].clusterID].nbData = %ld", i, s[i], b[i], a[i], dat[i].clusterID, c[dat[i].clusterID].nbData);
+            sk[dat[i].clusterID]+= s[i] / (double)c[dat[i].clusterID].nbData;
+        }
+
+        double sil = 0.0;
+        for(l=0;l<k;l++)
+        {
+            //SAY("sk[%d] = %lf", l, sk[l]);
+            if (!isnan(sk[l]))
+                sil += sk[l];
+        }
+
+        /*for(i=0;i<n;i++)
+          free(dist[i]);
+          free(dist);*/
+
+        return (sil/k);
+    }
+}
+
+static double CLUSTER_computeWeightedSilhouette(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -2.0;
+    }
+    else
+    {
+        double a[n], b[n], s[n], sk[k], distCluster[k], dist[n][n];
+        uint64_t i,j;
+        uint32_t l;
+
+        // Initilize sik
+        for(l=0;l<k;l++) 
+            sk[l] = 0.0;
+
+        // Create the distance matrix of i vs j
+        for(i=0;i<n;i++)
+        {
+            for (j=0;j<n;j++)
+            {
+                dist[i][j] = CLUSTER_computeDistanceWeightedPointToPoint(&(dat[i]), &(dat[j]), p, DISTANCE_EUCLIDEAN, (double *)&(fw[dat[i].clusterID]), ow[i]);
+                //SAY("dist2[%ld][%ld] = %lf", i, j, dist[i][j]);
+            }
+        }
+
+        for(i=0;i<n;i++)
+        {
+            // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
+            double d = 0.0;
+            for(j=0;j<n;j++)
+            {
+                if(j != i && dat[j].clusterID == dat[i].clusterID)
+                    d += dist[i][j];
+
+                if((c[dat[i].clusterID].nbData - 1) == 0)
+                    a[i] = 0.0;
+                else
+                    a[i] = d/(double)(c[dat[i].clusterID].nbData - 1);
+            }
+
+            // Calculate b[i], the lowest average dissimilarity of i to any other cluster, of which i is not a member
+            for(l=0;l<k;l++)
+                distCluster[l] = 0.0;
+
+            for(j=0;j<n;j++)
+                if(dat[j].clusterID != dat[i].clusterID)
+                    distCluster[dat[j].clusterID] += (dist[i][j]/c[dat[j].clusterID].nbData);
+            b[i] = 1.0e20;
+            for(l=0;l<k;l++)
+                if(l != dat[i].clusterID && distCluster[l] != 0 && distCluster[l] < b[i])
+                    b[i] = distCluster[l];
+
+            // Calculate s[i]
+            s[i] = (b[i] != a[i]) ?  (b[i] - a[i]) / fmax(a[i], b[i]) : 0.0;
+            //SAY("i = %ld, s[i] = %lf, b[i] = %lf, a[i] = %lf, dat[i].clusterID = %d, c[dat[i].clusterID].nbData = %ld", i, s[i], b[i], a[i], dat[i].clusterID, c[dat[i].clusterID].nbData);
+            sk[dat[i].clusterID]+= s[i] / (double)c[dat[i].clusterID].nbData;
+        }
+
+        double sil = 0.0;
+        for(l=0;l<k;l++)
+        {
+            //SAY("sk[%d] = %lf", l, sk[l]);
+            if (!isnan(sk[l]))
+                sil += sk[l];
+        }
+
+        return (sil/k);
     }
 }
 
