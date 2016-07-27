@@ -819,7 +819,6 @@ static void CLUSTER_randomCentroids(data *dat, uint64_t n, uint64_t p, cluster *
         ERR("Bad parameter");
     else
     {
-
         uint32_t l;
         uint64_t j;
 
