@@ -2926,22 +2926,22 @@ static void CLUSTER_computeCentroids(data *dat, uint64_t n, uint64_t p, cluster 
     else
     {
 
-    uint64_t i,j;
-    uint32_t l;
+        uint64_t i,j;
+        uint32_t l;
 
-    // Reset each centroid dimension to 0
-    for(l=0;l<k;l++)
-        for(j=0;j<p;j++)
-            c[l].centroid[j] = 0.0;
+        // Reset each centroid dimension to 0
+        for(l=0;l<k;l++)
+            for(j=0;j<p;j++)
+                c[l].centroid[j] = 0.0;
 
-    // Compute the new centroid dimension
-    for(i=0;i<n;i++)
-    {
-        for(j=0;j<p;j++)
+        // Compute the new centroid dimension
+        for(i=0;i<n;i++)
         {
-            c[dat[i].clusterID].centroid[j] += (dat[i].dim[j]/(double)c[dat[i].clusterID].nbData);   
-        }
-    }    
+            for(j=0;j<p;j++)
+            {
+                c[dat[i].clusterID].centroid[j] += (dat[i].dim[j]/(double)c[dat[i].clusterID].nbData);   
+            }
+        }    
     }
 }
 
