@@ -644,7 +644,8 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
     uint32_t i, k;
     uint64_t j;
     double statSil[kmax], statVRC[kmax], statCH[kmax];
-    double ow[n], fw[p];
+    double ow[n]; // Objects weights
+    double fw[kmax][p]; // Features weights
     uint32_t chGrp[kmax+1][n]; // Data membership for each k (CH)
 
     // Initialize statistics
@@ -655,16 +656,16 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
         statCH[k] = 0.0;
     }
 
-    // Initialize weights to 1.0
-    CLUSTER_initWeights(fw, p);
-    CLUSTER_initWeights(ow, n);
+    // Initialize objects weights to 1.0
+    CLUSTER_initFeatureWeights(kmax, p, fw);
+    CLUSTER_initObjectWeights(ow, n);
 
     // Compute total sum of squares 
     double TSS = CLUSTER_computeTSS(dat, n, p);
 
     if(internalFeatureWeights == false)
     {
-        // Read feature weights from file
+        // Read object weights from file
     }
 
     if(internalObjectWeights == false)
@@ -683,10 +684,16 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
         WRN("Random start : %d", i);
         for(k=kmax;k>=K_MIN;k--) // From kMax to kMin
         {
+            if(internalFeatureWeights == true)
+            {
+                // Initialize object weights to 1.0
+                CLUSTER_initFeatureWeights(k, p, fw);
+            }
+
             if(internalObjectWeights == true)
             {
                 // Initialize object weights to 1.0
-                CLUSTER_initWeights(ow, n);
+                CLUSTER_initObjectWeights(ow, n);
             }
 
             INF("Compute for k = %d", k);
