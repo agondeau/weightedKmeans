@@ -356,6 +356,10 @@ static void CLUSTER_computeObjectWeightsViaAverageSSE(data *dat, uint64_t n, uin
  */
 static void CLUSTER_computeObjectWeightsViaMedian(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
 
+static void CLUSTER_computeObjectWeightsViaMedian2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
+
+static void CLUSTER_computeObjectWeightsViaMedian3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
+
 /** @brief Detects and removes noisy points.
  *
  *  @param dat The pointer to data.
