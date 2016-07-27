@@ -106,6 +106,14 @@ static void CLUSTER_randomCentroids(data *dat, uint64_t n, uint64_t p, cluster *
  */
 static double CLUSTER_assignDataToCentroids(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+static double CLUSTER_assignDataToCentroids2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
+static double CLUSTER_assignDataToCentroids3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
+static double CLUSTER_assignDataToCentroids5(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
+static double CLUSTER_assignDataToCentroids6(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
 /** @brief Assigns weighted data to the nearest centroid.
  *
  *  @param dat The pointer to data.
