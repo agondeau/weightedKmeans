@@ -448,21 +448,6 @@ static void CLUSTER_computeObjectWeightsViaMedian2(data *dat, uint64_t n, uint64
 
 static void CLUSTER_computeObjectWeightsViaMedian3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
 
-/** @brief Detects and removes noisy points.
- *
- *  @param dat The pointer to data.
- *  @param n The number of the data.
- *  @param p The number of data dimensions.
- *  @param c The pointer to the clusters.
- *  @param k The number of clusters.
- *  @param nToRemove The pointer to the number 
- *                   of noisy points to remove.
- *  @param kToRemove The pointer to the number 
- *                   of noisy clusters to remove.
- *  @return Void.
- */
-static void CLUSTER_removeNoise(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint64_t *nToRemove, uint32_t *kToRemove);
-
 /** @brief Computes the sum of squared errors for a 
  *         clustering. 
  *
@@ -706,11 +691,6 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
             //double SSE = CLUSTER_weightedKmeans2(dat, n, p, k, c, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
             double wSSE = CLUSTER_weightedKmeans3(dat, n, p, k, c, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
 
-            // Remove noise
-            /*uint32_t kToRemove = 0;
-              uint64_t nToRemove = 0; 
-              CLUSTER_removeNoise(dat, n, p, c, k, &nToRemove, &kToRemove);*/ 
-
             // Compute silhouette statistic
             //double sil = CLUSTER_computeSilhouette(dat, n, p, c, k);
             //double sil = CLUSTER_computeSilhouette2(dat, n, p, c, k, dist);
@@ -719,9 +699,6 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
 
             //SAY("Silhouette = %lf, weighted silhouette = %lf", sil, sil2);
             SAY("Silhouette = %lf", sil);
-
-            // Update SSE after noise deletion
-            //SSE = CLUSTER_computeWeightedSSE(dat, n, p, c, k, fw, ow);
 
             // Compute the non-weighted SSE for statistics computation
             double SSE = CLUSTER_computeSSE(dat, n, p, c, k);
@@ -4349,133 +4326,6 @@ static void CLUSTER_computeObjectWeightsViaMedian3(data *dat, uint64_t n, uint64
                 //ow[i] = w[i];
             }
             //SAY("ow[%ld] = %lf, c = %d", i, ow[i], dat[i].clusterID);
-        }
-    }
-}
-
-static void CLUSTER_removeNoise(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint64_t *nToRemove, uint32_t *kToRemove)
-{
-    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || nToRemove == NULL || kToRemove == NULL)
-    {
-        ERR("Bad parameter");
-    }
-    else
-    {
-        /*double dst[n], distCluster[k], dist[n][n];
-          uint64_t i,j, avgDataPerCluster = 0;
-          uint32_t l;
-
-        // Initilize sik
-        for(l=0;l<k;l++)
-        {
-        avgDataPerCluster += (c[l].nbData / k);
-        distCluster[l] = 0.0;
-        }
-
-        // Create the distance matrix of i vs j
-        for(i=0;i<n;i++)
-        for (j=0;j<n;j++)
-        dist[i][j]= CLUSTER_computeDistancePointToPoint(&(dat[i]), &(dat[j]), p, DISTANCE_EUCLIDEAN);
-
-        for(i=0;i<n;i++)
-        {
-        // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
-        double d = 0.0;
-        for(j=0;j<n;j++)
-        {
-        if(j != i && dat[j].clusterID == dat[i].clusterID)
-        d += dist[i][j];
-
-        if((c[dat[i].clusterID].nbData - 1) == 0)
-        dst[i] = 0.0;
-        else
-        dst[i] = d/(double)(c[dat[i].clusterID].nbData - 1);
-        }
-
-        // Update average distance point to point per cluster 
-        distCluster[dat[i].clusterID] += dst[i] / (double)c[dat[i].clusterID].nbData;
-        }
-
-        for(i=0;i<n;i++)
-        {
-        SAY("dist[%ld] = %lf, cluster = %d, avgDistPerCluster[%d] = %lf", i, dst[i], dat[i].clusterID, dat[i].clusterID, distCluster[dat[i].clusterID]);
-        if(dst[i] > (distCluster[dat[i].clusterID]*1.5))
-        {
-        //if(dist[i] > (avgDistPerCluster[dat[i].clusterID]*1.25))
-        c[dat[i].clusterID].nbData--;
-        dat[i].clusterID = k;
-        }
-        }
-
-        for(l=0;l<k;l++)
-        {
-        SAY("c[%d].nbData = %ld, avgDataPerCluster = %ld", l, c[l].nbData, avgDataPerCluster);
-        if(c[l].nbData < (avgDataPerCluster / 1.5))
-        {
-        WRN("Cluster %d is a potential group of noise !", l);
-        for(i=0;i<n;i++)
-        if(dat[i].clusterID == l)
-        {
-        c[dat[i].clusterID].nbData--;
-        dat[i].clusterID = k; // k is the cluster of noise
-        }
-        }
-        }*/
-
-        uint32_t l;
-        uint64_t i;
-        double avgDistPerCluster[k];
-        double dist[n];
-        uint64_t avgDataPerCluster = 0;
-
-        // Initialisation
-        for(l=0;l<k;l++)
-        {
-            avgDataPerCluster += (c[l].nbData / k);
-            avgDistPerCluster[l] = 0.0;
-        }
-
-        // Calculate for each point the distance with its cluster mean
-        for(i=0;i<n;i++)
-        {
-            dist[i] = sqrt(CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN));
-            //SAY("dist[%ld] = %lf", i, dist[i]);
-            avgDistPerCluster[dat[i].clusterID] += (dist[i] / c[dat[i].clusterID].nbData); 
-        }
-
-        // Handle noise
-        for(l=0;l<k;l++)
-        {
-            SAY("c[%d].nbData = %ld, avgDataPerCluster = %ld", l, c[l].nbData, avgDataPerCluster);
-            if(c[l].nbData < (avgDataPerCluster / 1.5))
-            {
-                *kToRemove++;
-                WRN("Cluster %d is a potential group of noise !", l);
-                for(i=0;i<n;i++)
-                    if(dat[i].clusterID == l)
-                    {
-                        c[dat[i].clusterID].nbData--;
-                        *nToRemove++;
-                        dat[i].clusterID = k; // k is the cluster of noise
-                    }
-            }
-        }
-
-        for(i=0;i<n;i++)
-        {
-            //SAY("dist[%ld] = %lf, cluster = %d, avgDistPerCluster[%d] = %lf", i, dist[i], dat[i].clusterID, dat[i].clusterID, avgDistPerCluster[dat[i].clusterID]);
-            if(dist[i] > (avgDistPerCluster[dat[i].clusterID]*1.5))
-            {
-                c[dat[i].clusterID].nbData--;
-                *nToRemove++;
-                dat[i].clusterID = k;
-            }
-        }
-
-        if((k - *kToRemove) < 2 || (n - *nToRemove) < 2)
-        {
-            *kToRemove = 0;
-            *nToRemove = 0;
         }
     }
 }
