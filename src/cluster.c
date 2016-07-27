@@ -121,11 +121,25 @@ static double CLUSTER_assignDataToCentroids6(data *dat, uint64_t n, uint64_t p, 
  *  @param p The number of data dimensions.
  *  @param c The pointer to the clusters.
  *  @param k The number of clusters.
- *  @param fw The pointer to the features weights.
+ *  @param fw The features weights.
  *  @param ow The pointer to the objects weights.
  *  @return Void.
  */
-static double CLUSTER_assignWeightedDataToCentroids(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *fw, double *ow);
+static double CLUSTER_assignWeightedDataToCentroids(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
+
+static double CLUSTER_assignWeightedDataToCentroids2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
+
+static double CLUSTER_assignWeightedDataToCentroids3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
+
+static double CLUSTER_assignWeightedDataToCentroids4(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
+
+static double CLUSTER_assignWeightedDataToCentroids7(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow);
+
+static double CLUSTER_assignWeightedDataToCentroids72(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double dist[n][n]);
+
+static double CLUSTER_assignWeightedDataToCentroids9(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow);
+
+static double CLUSTER_assignWeightedDataToCentroids91(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
 
 /** @brief Computes the squared distance between a point and a cluster.
  *
