@@ -310,6 +310,10 @@ static void CLUSTER_initWeights(double *w, uint64_t dim);
  */
 static void CLUSTER_computeObjectWeights(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, eMethodType m);
 
+static void CLUSTER_computeObjectWeights2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, eMethodType m, double dist[n][n]);
+
+static void CLUSTER_computeObjectWeights3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, eMethodType m, double **dist);
+
 /** @brief Computes objects weights via silhouette
  *         score.
  *
