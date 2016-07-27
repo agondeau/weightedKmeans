@@ -4480,7 +4480,7 @@ static void CLUSTER_removeNoise(data *dat, uint64_t n, uint64_t p, cluster *c, u
     }
 }
 
-static double CLUSTER_computeSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *fw, double *ow)
+static double CLUSTER_computeSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
 {
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
     {
@@ -4494,10 +4494,51 @@ static double CLUSTER_computeSSE(data *dat, uint64_t n, uint64_t p, cluster *c, 
 
         for(i=0;i<n;i++)
         {
-            // Compute only real data
-            if(dat[i].clusterID != k)
+            SSE += CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN); 
+        }
+
+        return SSE;
+    }
+}
+
+static double CLUSTER_computeWeightedSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        double SSE = 0.0;
+        uint64_t i;
+
+        for(i=0;i<n;i++)
+        {
+            SSE += CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN, (double *)&(fw[dat[i].clusterID]), ow[i]);
+        }
+
+        return SSE;
+    }
+}
+
+static double CLUSTER_computeWeightedSSE2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        double SSE = 0.0;
+        uint64_t i;
+
+        for(i=0;i<n;i++)
+        {
+            if(dat[i].clusterID == k) 
             {
-                SSE += CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN, fw, ow[i]); 
+                SSE += CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN, (double *)&(fw[k]), ow[i]); 
             }
         }
 
