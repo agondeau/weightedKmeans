@@ -807,7 +807,7 @@ static double CLUSTER_kmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, clus
         CLUSTER_computeCentroids(dat, n, p, c, k);
 
         uint8_t iter=0;
-        double SSEref=1.0e20, SSE;
+        double /*SSEref=1.0e20,*/ SSE;
         bool conv = false; // Has converged
         uint32_t cl[n];
         while(iter < NB_ITER && conv == false)
@@ -882,7 +882,7 @@ static double CLUSTER_weightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t
         }
 
         uint8_t iter = 0;
-        double SSEref = 1.0e20, SSE;
+        double /*SSEref = 1.0e20,*/ SSE;
         bool conv = false; // Has converged
         uint32_t cl[n];
         uint64_t i;
@@ -979,7 +979,7 @@ static double CLUSTER_weightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_
         }
 
         uint8_t iter = 0;
-        double SSEref = 1.0e20, SSE;
+        double /*SSEref = 1.0e20,*/ SSE;
         bool conv = false; // Has converged
         uint32_t cl[n];
         uint64_t i;
@@ -1076,7 +1076,7 @@ static double CLUSTER_weightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_
         }
 
         uint8_t iter = 0;
-        double SSEref = 1.0e20, SSE;
+        double /*SSEref = 1.0e20,*/ SSE;
         bool conv = false; // Has converged
         uint32_t cl[n];
         uint64_t i;
@@ -1444,7 +1444,7 @@ static double CLUSTER_assignDataToCentroids5(data *dat, uint64_t n, uint64_t p, 
     }
     else
     {
-        uint64_t i, m, j;
+        uint64_t i, j;
         uint32_t l;
 
         // Compute SSEref
@@ -1531,7 +1531,7 @@ static double CLUSTER_assignDataToCentroids6(data *dat, uint64_t n, uint64_t p, 
     }
     else
     {
-        uint64_t i, j, o;
+        uint64_t i, j;
         uint32_t l;
 
         // Compute SSEref
@@ -1939,14 +1939,14 @@ static double CLUSTER_assignWeightedDataToCentroids4(data *dat, uint64_t n, uint
                     {
                         for(j=0;j<p;j++)
                         {
-                            WRN("BEF : c[%d].dim[%ld] = %lf", m, j, c[m].centroid[j]);
+                            WRN("BEF : c[%ld].dim[%ld] = %lf", m, j, c[m].centroid[j]);
                         }
-                        WRN("c[%d].nbData = %ld", m, c[m].nbData);
+                        WRN("c[%ld].nbData = %ld", m, c[m].nbData);
                     }
                     for(m=0;m<k;m++)
                     {
                         // Calculate squared Euclidean distance
-                        ERR("BEF : Dist with c%d = %lf", m, CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[m]), DISTANCE_EUCLIDEAN));
+                        ERR("BEF : Dist with c%ld = %lf", m, CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[m]), DISTANCE_EUCLIDEAN));
                     }
 
                     double cluFromDim[p]; // Current datum cluster dimensions
@@ -1972,15 +1972,15 @@ static double CLUSTER_assignWeightedDataToCentroids4(data *dat, uint64_t n, uint
                     {
                         for(j=0;j<p;j++)
                         {
-                            WRN("AFT : c[%d].dim[%ld] = %lf", m, j, c[m].centroid[j]);
+                            WRN("AFT : c[%ld].dim[%ld] = %lf", m, j, c[m].centroid[j]);
                         }
-                        WRN("c[%d].nbData = %ld", m, c[m].nbData);
+                        WRN("c[%ld].nbData = %ld", m, c[m].nbData);
                     }
 
                     for(m=0;m<k;m++)
                     {
                         // Calculate squared Euclidean distance
-                        ERR("AFT : Dist with c%d = %lf", m, CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[m]), DISTANCE_EUCLIDEAN));
+                        ERR("AFT : Dist with c%ld = %lf", m, CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[m]), DISTANCE_EUCLIDEAN));
                     }
 
                     // Update objects weights
@@ -3601,7 +3601,7 @@ static void CLUSTER_computeObjectWeightsViaSilhouette(data *dat, uint64_t n, uin
         double a[n], b[n], s[n], sk[k], distCluster[k], dist[n][n];
         uint64_t i,j;
         uint32_t l;
-        double totWeightSum = 0.0; // Total sum of weights
+        //double totWeightSum = 0.0; // Total sum of weights
 
         // Initilize sik
         for(l=0;l<k;l++) 
@@ -3692,7 +3692,7 @@ static void CLUSTER_computeObjectWeightsViaSilhouette2(data *dat, uint64_t n, ui
         double a[n], b[n], s[n], sk[k], distCluster[k];
         uint64_t i,j;
         uint32_t l;
-        double totWeightSum = 0.0; // Total sum of weights
+        //double totWeightSum = 0.0; // Total sum of weights
 
         // Initilize sik
         for(l=0;l<k;l++) 
@@ -3778,7 +3778,7 @@ static void CLUSTER_computeObjectWeightsViaSilhouette3(data *dat, uint64_t n, ui
         double a[n], b[n], s[n], sk[k], distCluster[k];
         uint64_t i,j;
         uint32_t l;
-        double totWeightSum = 0.0; // Total sum of weights
+        //double totWeightSum = 0.0; // Total sum of weights
 
         // Initilize sik
         for(l=0;l<k;l++) 
