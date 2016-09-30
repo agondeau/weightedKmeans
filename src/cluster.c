@@ -4169,7 +4169,9 @@ static void CLUSTER_computeObjectWeightsViaMedian2(data *dat, uint64_t n, uint64
             {
                 //ow[i] = (w[i] / sumWeights[dat[i].clusterID]) * (double) c[dat[i].clusterID].nbData;
                 //ow[i] = (w[i] / totWeightSum) /** (double) n*/;
-                ow[i] = w[i];
+
+                ow[i] = (w[i] / sumWeights[dat[i].clusterID]);
+                //ow[i] = w[i];
             }
             //SAY("ow[%ld] = %lf, c = %d", i, ow[i], dat[i].clusterID);
         }
