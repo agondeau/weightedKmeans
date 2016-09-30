@@ -2675,24 +2675,24 @@ static double CLUSTER_assignWeightedDataToCentroids91(data *dat, uint64_t n, uin
             for(l=0;l<k;l++)
             {
                 // Calculate squared Euclidean distance
-                double dist = CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN, (double *)&(fw[l]), ow[i]);
+                double dis = CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN, (double *)&(fw[l]), ow[i]);
 
                 // Save distance between point and its own centroid
                 if(dat[i].clusterID == l)
                 {
-                    distClus = dist; 
+                    distClus = dis; 
                 }
 
                 if(l == 0)
                 {
-                    minDist = dist;
+                    minDist = dis;
                     minK = l;
                 }
                 else
                 {
-                    if(dist < minDist)
+                    if(dis < minDist)
                     {
-                        minDist = dist;
+                        minDist = dis;
                         minK = l; // Save the cluster for the min distance
                     }
                 }
