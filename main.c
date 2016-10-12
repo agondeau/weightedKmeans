@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
     {
         uint8_t i;
         char dataFileName[FILENAME_SIZE_MAX], objectWeightFileName[FILENAME_SIZE_MAX], featureWeightFileName[FILENAME_SIZE_MAX];
-        uint32_t nbRep, kmax;
+        uint32_t nbRep = 1, kmax = 2;
 
         // Arguments handling
         for(i=1;i<argc;i++)
