@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
     srand(time(NULL));
 
     // Project Informations
-    COS("k-means : object weighted/feature weighted implementation");
+    COS("k-means : objects/features weighted implementation");
     COS("Author : Alexandre Gondeau");
 
     WRN("");
@@ -164,24 +164,36 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-    
+
         WRN("");
         WRN("Algorithm informations -----------------");
         uint64_t n, p;
         
         // Read data from input file
         data *dat = readDataFile(dataFileName, &n, &p);
+
+        // Check parameters
+        if(kmax >= n)
+        {
+            ERR("Failure : kmax needs to be < n");
+            return EXIT_FAILURE;
+        }
+
         if(dat != NULL)
         {
             if(weightedKmeans)
             {
                 INF("Weighted k-means");
-                CLUSTER_computeWeightedKmeans(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName);
+                //CLUSTER_computeWeightedKmeans(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName);
+                CLUSTER_computeWeightedKmeans2(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName);
             }
             else
             {
                 INF("Classic k-means");
-                CLUSTER_computeKmeans(dat, n, p, kmax, nbRep);
+                //CLUSTER_computeKmeans(dat, n, p, kmax, nbRep);
+                //CLUSTER_computeKmeans2(dat, n, p, kmax, nbRep);
+                //CLUSTER_computeKmeans3(dat, n, p, kmax, nbRep);
+                CLUSTER_computeKmeans4(dat, n, p, kmax, nbRep);
             }
 
             // Free allocated memory for data

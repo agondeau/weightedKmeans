@@ -54,6 +54,10 @@ typedef struct _data
  */
 void CLUSTER_computeKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
 
+void CLUSTER_computeKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
+void CLUSTER_computeKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
+void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
+
 /** @brief Computes the weighted (features/objects) 
  *         version of k-means algorithm.
  *
@@ -82,5 +86,7 @@ void CLUSTER_computeKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint
  *  @return Void.
  */
 void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile);
+
+void CLUSTER_computeWeightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile);
 
 #endif /* _CLUSTER_H */
