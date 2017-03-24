@@ -117,6 +117,16 @@ static double CLUSTER_assignDataToCentroids6(data *dat, uint64_t n, uint64_t p, 
 
 static double CLUSTER_assignDataToCentroids7(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+static double CLUSTER_assignDataToCentroids8(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
+static double CLUSTER_assignDataToCentroids9(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
+static double CLUSTER_assignDataToCentroids10(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
+static void CLUSTER_assignDataToCentroids11(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool *conv);
+
+static void CLUSTER_assignDataToCentroids12(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool *conv);
+
 /** @brief Assigns weighted data to the nearest centroid.
  *
  *  @param dat The pointer to data.
@@ -165,6 +175,22 @@ static double CLUSTER_assignWeightedDataToCentroids16(data *dat, uint64_t n, uin
 static double CLUSTER_assignWeightedDataToCentroids17(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
 
 static double CLUSTER_assignWeightedDataToCentroids18(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
+
+static double CLUSTER_assignWeightedDataToCentroids19(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
+
+static double CLUSTER_assignWeightedDataToCentroids20(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
+
+static double CLUSTER_assignWeightedDataToCentroids21(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
+
+static double CLUSTER_assignWeightedDataToCentroids22(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
+
+static void CLUSTER_assignWeightedDataToCentroids23(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist, bool *conv);
+
+static void CLUSTER_assignWeightedDataToCentroids24(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist, bool *conv);
+
+static void CLUSTER_assignWeightedDataToCentroids25(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist, bool *conv);
+
+static void CLUSTER_assignWeightedDataToCentroids26(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double ow[n][k], bool *conv);
 
 /** @brief Computes the squared distance between a point and a cluster.
  *
@@ -227,6 +253,10 @@ static void CLUSTER_computeCentroids(data *dat, uint64_t n, uint64_t p, cluster 
  */
 static void CLUSTER_computeCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+static void CLUSTER_transferPointToCluster(data *dat, uint64_t indN, uint64_t p, cluster *c, uint32_t indK);
+
+static void CLUSTER_transferPointToCluster2(data *dat, uint64_t indN, uint64_t p, cluster *c, uint32_t indK);
+
 static void kmeans_Lloyd(double *x, int *pn, int *pp, double *cen, int *pk, int *cl, int *pmaxiter, int *nc, double *wss);
 
 static double CLUSTER_kmeans_Lloyd(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c);
@@ -243,6 +273,8 @@ static double CLUSTER_kmeans_Lloyd(data *dat, uint64_t n, uint64_t p, uint32_t k
  */
 static double CLUSTER_kmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c);
 static double CLUSTER_kmeans2(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c);
+static double CLUSTER_kmeans3(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c);
+static double CLUSTER_kmeans4(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c);
 
 /** @brief Computes the classical version of k-means  
  *         algorithm for k clusters.
@@ -273,6 +305,10 @@ static double CLUSTER_weightedKmeans4(data *dat, uint64_t n, uint64_t p, uint32_
 static double CLUSTER_weightedKmeans5(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
 
 static double CLUSTER_weightedKmeans6(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
+
+static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
+
+static double CLUSTER_weightedKmeans8(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double ow[n][k], double **dist);
 
 /** @brief Computes the silhouette score for a 
  *         clustering.
@@ -376,6 +412,7 @@ static double CLUSTER_computeCH(double TSS, double SSE, uint64_t n, uint32_t k);
  *  @return Void.
  */
 static void CLUSTER_initObjectWeights(double *ow, uint64_t n);
+static void CLUSTER_initObjectWeights2(uint64_t n, uint32_t k, double ow[n][k]);
 
 /** @brief Initializes features weights to 1. 
  *
@@ -442,6 +479,8 @@ static void CLUSTER_computeObjectWeights2(data *dat, uint64_t n, uint64_t p, clu
 
 static void CLUSTER_computeObjectWeights3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, eMethodType m, double **dist);
 
+static void CLUSTER_computeObjectWeights4(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double ow[n][k], eMethodType m, double **dist);
+
 /** @brief Computes objects weights via different
  *         methods.
  *
@@ -478,6 +517,14 @@ static void CLUSTER_computeObjectWeightsViaSilhouette3(data *dat, uint64_t n, ui
 static void CLUSTER_computeObjectWeightsViaSilhouette4(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow, double **dist);
 
 static void CLUSTER_computeObjectWeightsInClusterViaSilhouette(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double *ow, double **dist);
+
+static double CLUSTER_computeObjectWeightInClusterViaSilhouette(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist);
+
+static double CLUSTER_computeObjectWeightInClusterViaSilhouette2(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist);
+
+static double CLUSTER_computeObjectWeightInClusterViaMedian(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t indK);
+
+static double CLUSTER_computeObjectWeightInClusterViaMedian2(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t indK);
 
 /** @brief Computes objects weights via the sum 
  *         of squared errors.
@@ -534,6 +581,8 @@ static void CLUSTER_computeObjectWeightsViaMedian2(data *dat, uint64_t n, uint64
 
 static void CLUSTER_computeObjectWeightsViaMedian3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
 
+static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
+
 /** @brief Computes the sum of squared errors for a 
  *         clustering. 
  *
@@ -545,6 +594,8 @@ static void CLUSTER_computeObjectWeightsViaMedian3(data *dat, uint64_t n, uint64
  *          clustering.
  */
 static double CLUSTER_computeSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
+static double CLUSTER_computeSSEInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
 static void CLUSTER_computeWSS(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double wss[k]);
 
@@ -564,7 +615,11 @@ static double CLUSTER_computeWeightedSSE(data *dat, uint64_t n, uint64_t p, clus
 
 static double CLUSTER_computeWeightedSSE2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
 
+static double CLUSTER_computeNkWeightedSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
+
 static double CLUSTER_computeWeightedSSEInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
+
+static double CLUSTER_computeNkWeightedSSEInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow);
 
 /** @brief Computes the matrix of distances 
  *         points to points. 
@@ -978,7 +1033,9 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
             /*CLUSTER_fakeDataAssignmentToCentroids(dat, n, k);
             CLUSTER_randomCentroids(dat, n, p, c, k);
             double SSE = CLUSTER_kmeans_Lloyd(dat, n, p, k, c);*/
-            double SSE = CLUSTER_kmeans2(dat, n, p, k, c);
+            //double SSE = CLUSTER_kmeans2(dat, n, p, k, c);
+            //double SSE = CLUSTER_kmeans3(dat, n, p, k, c);
+            double SSE = CLUSTER_kmeans4(dat, n, p, k, c);
 
             //SAY("SSE = %lf, TSS = %lf, n = %ld, k = %d", SSE, TSS2, n, k);
 
@@ -1841,6 +1898,350 @@ void CLUSTER_computeWeightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t 
     CLUSTER_FreeMatDistPointToPoint(n, &dist); 
 }
 
+void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile)
+{
+    uint32_t i, k, o;
+    uint64_t j;
+    double statSil[kmax], statVRC2[kmax], statCH[kmax], statSSE[kmax];
+    uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
+    double ow[n]; // Objects weights
+    double fw[kmax][p]; // Features weights
+
+    // Initialize statistics
+    for(k=kmax;k>=K_MIN;k--)
+    {
+        statSil[k] = -1.0;
+        statVRC2[k] = 0.0;
+        statCH[k] = 0.0;
+        statSSE[k] = 1.0e20;
+    }
+
+    // Compute total sum of squares 
+    double TSS = CLUSTER_computeTSS(dat, n, p);
+
+    // Calculate the matrix of distance between points
+    double **dist;
+    CLUSTER_ComputeMatDistPointToPoint2(dat, n, p, &dist);
+
+    // Initialize weights to 1.0
+    CLUSTER_initFeatureWeights(kmax, p, fw);
+    CLUSTER_initObjectWeights(ow, n);
+    if(internalFeatureWeights == false)
+    {
+        // Read object weights from file
+    }
+
+    if(internalObjectWeights == false)
+    {
+        // Read object weights from file
+    }
+
+    //WRN("Iteration %d", i);
+    for(k=kmax;k>=K_MIN;k--) // From kMax to kMin
+    {
+        for(i=0;i<nbRep;i++) // Number of replicates
+        {
+            // Initialize weights
+            if(internalFeatureWeights == true)
+            {
+                // Initialize object weights to 1.0
+                CLUSTER_initFeatureWeights(k, p, fw);
+            }
+
+            if(internalObjectWeights == true)
+            {
+                // Initialize object weights to 1.0
+                CLUSTER_initObjectWeights(ow, n);
+            }
+
+            cluster c[k];
+            // Allocate clusters dimension memory
+            CLUSTER_initClusters(p, c, k);
+
+            double SSE = CLUSTER_weightedKmeans7(dat, n, p, k, c, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
+            
+            // Compute silhouette statistic
+            double sil = CLUSTER_computeSilhouette4(dat, n, p, c, k, dist);
+
+            // Compute VRC statistic
+            double vrc2 = CLUSTER_computeVRC2(dat, c, SSE, n, p, k);
+
+            // Compute CH statistic
+            double ch = CLUSTER_computeCH(TSS, SSE, n, k);
+
+            // Check for null clusters
+            bool clustNull = false;
+            for(o=0;o<k;o++)
+            {
+                if(c[o].nbData == 0)
+                {
+                    clustNull = true;
+                }    
+            }
+
+            // Save best VRC statistic for each k
+            if((vrc2 > statVRC2[k] || i == 0) && clustNull == false)
+            {
+                statVRC2[k] = vrc2;
+                // Save data membership for each k (VRC)
+                for(j=0;j<n;j++)
+                {
+                    vrc2Grp[k][j] = dat[j].clusterID;
+                }
+            }
+
+            // Save best CH statistic for each k
+            if((ch > statCH[k] || i == 0) && clustNull == false)
+            {
+                statCH[k] = ch;
+                // Save data membership for each k (VRC)
+                for(j=0;j<n;j++)
+                {
+                    chGrp[k][j] = dat[j].clusterID;
+                }
+            }
+
+            if((sil > statSil[k] || i == 0) && clustNull == false)
+            {
+                statSil[k] = sil;
+                // Save data membership for each k (VRC)
+                for(j=0;j<n;j++)
+                {
+                    silGrp[k][j] = dat[j].clusterID;
+                }
+            }
+
+            // Free clusters dimension memory
+            CLUSTER_freeClusters(c, k);
+        }
+    }
+
+    // Retrieve the overall best statistics
+    double silMax = -1.0, vrc2Max = 0.0, chMax = 0.0;
+    uint32_t kSilMax, kVrc2Max, kChMax;
+    for(k=kmax;k>=K_MIN;k--)
+    {
+        if(statSil[k] > silMax)
+        {
+            silMax = statSil[k];
+            kSilMax = k;
+        }
+
+        if(statVRC2[k] > vrc2Max)
+        {
+            vrc2Max = statVRC2[k];
+            kVrc2Max = k;
+        }
+
+        if(statCH[k] > chMax)
+        {
+            chMax = statCH[k];
+            kChMax = k;
+        }
+    }
+
+    WRN("");
+    WRN("Final statistics -----------------------");
+    INF("Best silhouette : %lf for k = %d", silMax, kSilMax);
+    INF("Best VRC2 : %lf for k = %d", vrc2Max, kVrc2Max);
+    INF("Best CH : %lf for k = %d", chMax, kChMax);
+    WRN("");
+    WRN("Data membership for best indice scores -");
+    printf("dataId\t");
+    printf("Sil\t");
+    printf("VRC2\t");
+    printf("CH\t\n");
+    printf("\t%d-Gr\t", kSilMax);
+    printf("%d-Gr\t", kVrc2Max);
+    printf("%d-Gr\t", kChMax);
+    INF("");
+    for(j=0;j<n;j++)
+    {
+        printf("%ld\t", (j + 1));
+        printf("%d\t", silGrp[kSilMax][j]);
+        printf("%d\t", vrc2Grp[kVrc2Max][j]);
+        printf("%d\t", chGrp[kChMax][j]);
+        INF("");
+    }
+    WRN("----------------------------------------");
+
+    // Free allocated distances matrix
+    CLUSTER_FreeMatDistPointToPoint(n, &dist); 
+}
+
+void CLUSTER_computeWeightedKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile)
+{
+    uint32_t i, k, o;
+    uint64_t j;
+    double statSil[kmax], statVRC2[kmax], statCH[kmax], statSSE[kmax];
+    uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
+    //double ow[n];
+    double ow[n][kmax]; // Objects weights
+    double fw[kmax][p]; // Features weights
+
+    // Initialize statistics
+    for(k=kmax;k>=K_MIN;k--)
+    {
+        statSil[k] = -1.0;
+        statVRC2[k] = 0.0;
+        statCH[k] = 0.0;
+        statSSE[k] = 1.0e20;
+    }
+
+    // Compute total sum of squares 
+    double TSS = CLUSTER_computeTSS(dat, n, p);
+
+    // Calculate the matrix of distance between points
+    double **dist;
+    CLUSTER_ComputeMatDistPointToPoint2(dat, n, p, &dist);
+
+    // Initialize weights to 1.0
+    CLUSTER_initFeatureWeights(kmax, p, fw);
+    CLUSTER_initObjectWeights2(n, kmax, ow);
+    if(internalFeatureWeights == false)
+    {
+        // Read object weights from file
+    }
+
+    if(internalObjectWeights == false)
+    {
+        // Read object weights from file
+    }
+
+    //WRN("Iteration %d", i);
+    for(k=kmax;k>=K_MIN;k--) // From kMax to kMin
+    {
+        for(i=0;i<nbRep;i++) // Number of replicates
+        {
+            // Initialize weights
+            if(internalFeatureWeights == true)
+            {
+                // Initialize object weights to 1.0
+                CLUSTER_initFeatureWeights(k, p, fw);
+            }
+
+            if(internalObjectWeights == true)
+            {
+                // Initialize object weights to 1.0
+                //CLUSTER_initObjectWeights(ow, n);
+                CLUSTER_initObjectWeights2(n, kmax, ow);
+            }
+
+            cluster c[k];
+            // Allocate clusters dimension memory
+            CLUSTER_initClusters(p, c, k);
+
+            double SSE = CLUSTER_weightedKmeans8(dat, n, p, k, c, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
+
+            // Compute silhouette statistic
+            double sil = CLUSTER_computeSilhouette4(dat, n, p, c, k, dist);
+
+            // Compute VRC statistic
+            double vrc2 = CLUSTER_computeVRC2(dat, c, SSE, n, p, k);
+
+            // Compute CH statistic
+            double ch = CLUSTER_computeCH(TSS, SSE, n, k);
+
+            // Check for null clusters
+            bool clustNull = false;
+            for(o=0;o<k;o++)
+            {
+                if(c[o].nbData == 0)
+                {
+                    clustNull = true;
+                }    
+            }
+
+            // Save best VRC statistic for each k
+            if((vrc2 > statVRC2[k] || i == 0) && clustNull == false)
+            {
+                statVRC2[k] = vrc2;
+                // Save data membership for each k (VRC)
+                for(j=0;j<n;j++)
+                {
+                    vrc2Grp[k][j] = dat[j].clusterID;
+                }
+            }
+
+            // Save best CH statistic for each k
+            if((ch > statCH[k] || i == 0) && clustNull == false)
+            {
+                statCH[k] = ch;
+                // Save data membership for each k (VRC)
+                for(j=0;j<n;j++)
+                {
+                    chGrp[k][j] = dat[j].clusterID;
+                }
+            }
+
+            if((sil > statSil[k] || i == 0) && clustNull == false)
+            {
+                statSil[k] = sil;
+                // Save data membership for each k (VRC)
+                for(j=0;j<n;j++)
+                {
+                    silGrp[k][j] = dat[j].clusterID;
+                }
+            }
+
+            // Free clusters dimension memory
+            CLUSTER_freeClusters(c, k);
+        }
+    }
+
+    // Retrieve the overall best statistics
+    double silMax = -1.0, vrc2Max = 0.0, chMax = 0.0;
+    uint32_t kSilMax, kVrc2Max, kChMax;
+    for(k=kmax;k>=K_MIN;k--)
+    {
+        if(statSil[k] > silMax)
+        {
+            silMax = statSil[k];
+            kSilMax = k;
+        }
+
+        if(statVRC2[k] > vrc2Max)
+        {
+            vrc2Max = statVRC2[k];
+            kVrc2Max = k;
+        }
+
+        if(statCH[k] > chMax)
+        {
+            chMax = statCH[k];
+            kChMax = k;
+        }
+    }
+
+    WRN("");
+    WRN("Final statistics -----------------------");
+    INF("Best silhouette : %lf for k = %d", silMax, kSilMax);
+    INF("Best VRC2 : %lf for k = %d", vrc2Max, kVrc2Max);
+    INF("Best CH : %lf for k = %d", chMax, kChMax);
+    WRN("");
+    WRN("Data membership for best indice scores -");
+    printf("dataId\t");
+    printf("Sil\t");
+    printf("VRC2\t");
+    printf("CH\t\n");
+    printf("\t%d-Gr\t", kSilMax);
+    printf("%d-Gr\t", kVrc2Max);
+    printf("%d-Gr\t", kChMax);
+    INF("");
+    for(j=0;j<n;j++)
+    {
+        printf("%ld\t", (j + 1));
+        printf("%d\t", silGrp[kSilMax][j]);
+        printf("%d\t", vrc2Grp[kVrc2Max][j]);
+        printf("%d\t", chGrp[kChMax][j]);
+        INF("");
+    }
+    WRN("----------------------------------------");
+
+    // Free allocated distances matrix
+    CLUSTER_FreeMatDistPointToPoint(n, &dist); 
+}
+
 static void kmeans_Lloyd(double *x, int *pn, int *pp, double *cen, int *pk, int *cl, int *pmaxiter, int *nc, double *wss)
 {
     int n = *pn, k = *pk, p = *pp, maxiter = *pmaxiter;
@@ -2051,6 +2452,77 @@ static double CLUSTER_kmeans2(data *dat, uint64_t n, uint64_t p, uint32_t k, clu
         }
 
         return SSE; 
+    }
+}
+
+static double CLUSTER_kmeans3(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c)
+{
+    if(dat == NULL || n < 2 || p < 1 || k < 2)
+    {
+        ERR("k-means : bad parameter : dat = %p, n = %ld, p = %ld, k = %d", dat, n, p, k);
+        return -1.0;
+    }
+    else
+    {
+        // Initialization
+        CLUSTER_fakeDataAssignmentToCentroids(dat, n, k);
+        CLUSTER_randomCentroids(dat, n, p, c, k);
+        CLUSTER_assignDataToCentroids7(dat, n, p, c, k);
+        CLUSTER_computeCentroids(dat, n, p, c, k);
+
+        uint8_t iter = 0;
+        double SSEref = 1.0e20, SSE;
+        bool conv = false; // Has converged
+        while(iter < NB_ITER && conv == false)
+        {
+            // Assign data to the nearest centroid
+            SSE = CLUSTER_assignDataToCentroids8(dat, n, p, c, k); // MacQueen
+            //SSE = CLUSTER_assignDataToCentroids10(dat, n, p, c, k); // Hartigan and Wong
+
+            // Test algorithm convergence
+            if(fabs(SSEref - SSE) > (SSE / 1000.0))            
+            {
+                SSEref = SSE;
+            }
+            else			
+            {
+                conv = true;
+            }
+
+            iter++;
+        }
+
+        return SSE; 
+    }
+}
+
+static double CLUSTER_kmeans4(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c)
+{
+    if(dat == NULL || n < 2 || p < 1 || k < 2)
+    {
+        ERR("k-means : bad parameter : dat = %p, n = %ld, p = %ld, k = %d", dat, n, p, k);
+        return -1.0;
+    }
+    else
+    {
+        // Initialization
+        CLUSTER_fakeDataAssignmentToCentroids(dat, n, k);
+        CLUSTER_randomCentroids(dat, n, p, c, k);
+        CLUSTER_assignDataToCentroids7(dat, n, p, c, k);
+        CLUSTER_computeCentroids(dat, n, p, c, k);
+
+        uint8_t iter = 0;
+        bool conv = false; // Has converged
+        while(iter < NB_ITER && conv == false)
+        {
+            // Data assignation
+            CLUSTER_assignDataToCentroids11(dat, n, p, c, k, &conv); // MacQueen
+            //CLUSTER_assignDataToCentroids12(dat, n, p, c, k, &conv); // Hartigan and Wong
+
+            iter++;
+        }
+
+        return CLUSTER_computeSSE(dat, n, p, c, k); 
     }
 }
 
@@ -2535,8 +3007,11 @@ static double CLUSTER_weightedKmeans6(data *dat, uint64_t n, uint64_t p, uint32_
         {
             // Assign data to the nearest centroid
             //SSE = CLUSTER_assignWeightedDataToCentroids17(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
-            SSE = CLUSTER_assignWeightedDataToCentroids18(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
-
+            //SSE = CLUSTER_assignWeightedDataToCentroids18(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
+            //SSE = CLUSTER_assignWeightedDataToCentroids19(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
+            //SSE = CLUSTER_assignWeightedDataToCentroids20(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
+            //SSE = CLUSTER_assignWeightedDataToCentroids21(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
+            SSE = CLUSTER_assignWeightedDataToCentroids22(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
 
             // Update weights
             if(internalFeatureWeights == true)
@@ -2559,6 +3034,125 @@ static double CLUSTER_weightedKmeans6(data *dat, uint64_t n, uint64_t p, uint32_
         }
 
         return SSE; 
+    }
+}
+
+static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || k < 2)
+    {
+        ERR("k-means : bad parameter : dat = %p, n = %ld, p = %ld, k = %d", dat, n, p, k);
+        return -1.0;
+    }
+    else
+    {
+        // Initialization
+        eMethodType objWeiMed = METHOD_MEDIAN/*METHOD_SILHOUETTE*/;
+        eMethodType feaWeiMed = METHOD_DISPERSION;
+        CLUSTER_fakeDataAssignmentToCentroids(dat, n, k);
+        CLUSTER_randomCentroids(dat, n, p, c, k);
+        CLUSTER_assignDataToCentroids7(dat, n, p, c, k);
+        CLUSTER_computeCentroids(dat, n, p, c, k);
+        if(internalFeatureWeights == true)
+        {
+            CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+        }
+        if(internalObjectWeights == true)
+        {
+            CLUSTER_computeObjectWeights3(dat, n, p, c, k, ow, objWeiMed, dist);
+        }
+
+        uint8_t iter = 0;
+        bool conv = false; // Has converged
+        while(iter < NB_ITER && conv == false)
+        {
+            // Data assignation
+            //CLUSTER_assignWeightedDataToCentroids23(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist, &conv); // Based on WSS and 1/nk
+            //CLUSTER_assignWeightedDataToCentroids24(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist, &conv); // Based on SSE and 1/nk
+            CLUSTER_assignWeightedDataToCentroids25(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist, &conv); // Based on SSE
+
+            iter++;
+        }
+
+        return CLUSTER_computeSSE(dat, n, p, c, k); 
+    }
+}
+
+static double CLUSTER_weightedKmeans8(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double ow[n][k], double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || k < 2)
+    {
+        ERR("k-means : bad parameter : dat = %p, n = %ld, p = %ld, k = %d", dat, n, p, k);
+        return -1.0;
+    }
+    else
+    {
+        // Initialization
+        eMethodType objWeiMed = METHOD_MEDIAN/*METHOD_SILHOUETTE*/;
+        eMethodType feaWeiMed = METHOD_DISPERSION;
+        CLUSTER_fakeDataAssignmentToCentroids(dat, n, k);
+        CLUSTER_randomCentroids(dat, n, p, c, k);
+        CLUSTER_assignDataToCentroids7(dat, n, p, c, k);
+        CLUSTER_computeCentroids(dat, n, p, c, k);
+
+        if(internalFeatureWeights == true)
+        {
+            CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+        }
+        if(internalObjectWeights == true)
+        {
+            CLUSTER_computeObjectWeights4(dat, n, p, c, k, ow, objWeiMed, dist);
+        }
+
+        uint8_t iter = 0;
+        bool conv = false; // Has converged
+        while(iter < NB_ITER && conv == false)
+        {
+            /*uint64_t y;
+            uint32_t z;
+            double sum[k];
+            for(z=0;z<k;z++)
+            {
+                sum[z] = 0.0;
+            }
+
+            for(y=0;y<n;y++)
+            {
+                sum[dat[y].clusterID] += ow[y][dat[y].clusterID];
+                for(z=0;z<k;z++)
+                {
+                    SAY("ow[%ld][%d] = %lf (c%d)", y, z, ow[y][z], dat[y].clusterID);
+                }
+            }
+
+            for(z=0;z<k;z++)
+            {
+                SAY("sum[%d] = %lf (nbData = %ld)",z, sum[z], c[z].nbData);
+            }*/
+
+            // Data assignation
+            CLUSTER_assignWeightedDataToCentroids26(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, &conv); // Based on SSE
+
+            // Update centroids position
+            CLUSTER_computeCentroids(dat, n, p, c, k);
+
+            // Update weights
+            if(internalFeatureWeights == true)
+            {
+                // Internal computation of features weights
+                CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+            }
+
+            if(internalObjectWeights == true)
+            {
+                // Internal computation of objects weights
+                CLUSTER_computeObjectWeights4(dat, n, p, c, k, ow, objWeiMed, dist);
+            }
+
+            iter++;
+        }
+
+        return CLUSTER_computeSSE(dat, n, p, c, k); 
     }
 }
 
@@ -3117,6 +3711,272 @@ static double CLUSTER_assignDataToCentroids7(data *dat, uint64_t n, uint64_t p, 
         }
 
         return SSE;
+    }
+}
+
+static double CLUSTER_assignDataToCentroids8(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        // MacQueen algorithm //
+        
+        uint64_t i;
+        uint32_t l;
+        double SSE = 0.0;
+
+        for(i=0;i<n;i++)
+        {
+            double minDist;
+            double distClus;
+            uint32_t minK;
+            //INF("Dist for dat%ld", i);
+            for(l=0;l<k;l++)
+            {
+                // Calculate squared Euclidean distance
+                double dist = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN);
+
+                //SAY("Dist with c%d = %lf (c nbData = %ld)", l, dist, c[l].nbData);
+                if(l == 0)
+                {
+                    minDist = dist;
+                    minK = l;
+                }
+                else
+                {
+                    if(dist < minDist)
+                    {
+                        minDist = dist;
+                        minK = l; // Save the cluster for the min distance
+                    }
+                }
+            }
+
+            // Transfer point i to cluster minK
+            CLUSTER_transferPointToCluster2(dat, i, p, c, minK);
+
+            SSE += CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[minK]), DISTANCE_EUCLIDEAN);;
+
+            //SAY("dat[%ld] centroid : %d (nb data = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
+        }
+
+        return SSE;
+    }
+}
+
+static double CLUSTER_assignDataToCentroids9(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        // Hartigan and Wong algorithm //
+        
+        uint64_t i;
+        uint32_t l;
+        double SSE = 0.0;
+
+        for(i=0;i<n;i++)
+        {
+            double minSSE = CLUSTER_computeSSEInCluster(dat, n, p, c, dat[i].clusterID);
+            // Save current cluster of point i
+            uint32_t curClust = dat[i].clusterID;
+            uint32_t minK;
+
+            for(l=0;l<k;l++)
+            {
+                if(l != curClust)
+                {
+                    double d;
+
+                    // Transfer point i to cluster l
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, l);
+
+                    // Calculate squared SSE in cluster l 
+                    SSE = CLUSTER_computeSSEInCluster(dat, n, p, c, dat[i].clusterID);
+
+                    if(SSE < minSSE)
+                    {
+                        minSSE = SSE;
+                        minK = l; // Save the cluster for the min distance
+                        curClust = l;
+                    }
+                    else
+                    {
+                        // Transfer point i to cluster l
+                        CLUSTER_transferPointToCluster2(dat, i, p, c, curClust);
+                    }
+                }
+            }
+        }
+
+        return CLUSTER_computeSSE(dat, n, p, c, k);
+    }
+}
+
+static double CLUSTER_assignDataToCentroids10(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        // Hartigan and Wong algorithm //
+        
+        uint64_t i;
+        uint32_t l;
+        double SSE[k];
+
+        for(l=0;l<k;l++)
+        {
+            // Compute SSE in cluster l
+            SSE[l] = CLUSTER_computeSSEInCluster(dat, n, p, c, l);
+
+            for(i=0;i<n;i++)
+            {
+                // Save datum current cluster 
+                uint32_t curClust = dat[i].clusterID;
+
+                // Transfer point i to cluster l
+                CLUSTER_transferPointToCluster2(dat, i, p, c, l);
+
+                // Recompute SS in cluster l
+                double sse = CLUSTER_computeSSEInCluster(dat, n, p, c, l);
+
+                if(sse < SSE[l])
+                {
+                    SSE[l] = sse;
+                }
+                else
+                {
+                    // Transfer point i to its previous cluster 
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, curClust);
+                }
+            }
+        }
+
+        double finalSSE = 0.0;
+        for(l=0;l<k;l++)
+        {
+            finalSSE += CLUSTER_computeSSEInCluster(dat, n, p, c, l);
+        }
+
+        return finalSSE;
+    }
+}
+
+static void CLUSTER_assignDataToCentroids11(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool *conv)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        // MacQueen algorithm //
+        
+        uint64_t i;
+        uint32_t l;
+
+        // Set convergence variable
+        *conv = true;
+
+        for(i=0;i<n;i++)
+        {
+            double minDist;
+            double distClus;
+            uint32_t minK;
+
+            // For each cluster
+            for(l=0;l<k;l++)
+            {
+                // Calculate squared Euclidean distance
+                double dist = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN);
+
+                if(l == 0)
+                {
+                    minDist = dist;
+                    minK = l;
+                }
+                else
+                {
+                    if(dist < minDist)
+                    {
+                        minDist = dist;
+                        minK = l; // Save the cluster for the min distance
+                    }
+                }
+            }
+
+            if(minK != dat[i].clusterID)
+            {
+                // Transfer point i to cluster minK
+                CLUSTER_transferPointToCluster2(dat, i, p, c, minK);
+
+                // Reset convergence variable
+                *conv = false;
+            }
+        }
+    }
+}
+
+static void CLUSTER_assignDataToCentroids12(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool *conv)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        // Hartigan and Wong algorithm //
+        
+        uint64_t i;
+        uint32_t l;
+
+        // Set convergence variable
+        *conv = true;
+
+        for(l=0;l<k;l++)
+        {
+            // Compute SSE in cluster l
+            double refSSE = CLUSTER_computeSSEInCluster(dat, n, p, c, l);
+
+            for(i=0;i<n;i++)
+            {
+                // Save datum current cluster 
+                uint32_t curClust = dat[i].clusterID;
+
+                // Transfer point i to cluster l
+                CLUSTER_transferPointToCluster2(dat, i, p, c, l);
+
+                // Recompute SS in cluster l
+                double sse = CLUSTER_computeSSEInCluster(dat, n, p, c, l);
+
+                if(sse < refSSE)
+                {
+                    refSSE = sse;
+
+                    // Reset convergence variable
+                    *conv = false;
+                }
+                else
+                {
+                    // Transfer point i to its previous cluster 
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, curClust);
+                }
+            }
+        }
     }
 }
 
@@ -5494,7 +6354,7 @@ static double CLUSTER_assignWeightedDataToCentroids18(data *dat, uint64_t n, uin
                     }
                     else
                     {
-                        // Calculate squared Euclidean distance
+                        // Calculate squared SSE in cluster l 
                         SSE = CLUSTER_computeWeightedSSEInCluster(dat, n, p, c, dat[i].clusterID, fw, ow);
                     }
 
@@ -5552,6 +6412,945 @@ static double CLUSTER_assignWeightedDataToCentroids18(data *dat, uint64_t n, uin
             }
 
         return finalSSE;
+    }
+}
+
+static double CLUSTER_assignWeightedDataToCentroids19(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+        double SSE = 0.0;
+        eMethodType objWeiMet = /*METHOD_MEDIAN*/METHOD_SILHOUETTE;
+
+        for(i=0;i<n;i++)
+        {
+            double minSSE = CLUSTER_computeWeightedSSEInCluster(dat, n, p, c, dat[i].clusterID, fw, ow);
+            // Save current cluster of point i
+            uint32_t curClust = dat[i].clusterID;
+            uint32_t minK;
+
+            //WRN("SSE for dat%ld (ow = %lf)", i, ow[i]);
+            for(l=0;l<k;l++)
+            {
+                if(l != curClust && (c[curClust].nbData - 1) > 0)
+                {
+                    double d;
+                    double w[n];
+                    double fromClus[p];
+                    double toClus[p];
+
+                    //WRN("Dat[%ld] from cluster %d to cluster %d",i,curClust, l);
+
+                    // Save current positions of cluster l and prevClust 
+                    /*printf("Current centroids : ");
+                    for(j=0;j<p;j++)
+                    {
+                        fromClus[j] = c[curClust].centroid[j];
+                        toClus[j] = c[l].centroid[j];
+                        printf("toClus[%ld] = %lf, ",j, toClus[j]);
+                    }
+                    SAY("");*/
+
+                    // Save current weights
+                    //printf("Current weights : ");
+                    for(j=0;j<n;j++)
+                    {
+                        w[j] = ow[j];
+                        //printf("ow[%ld] = %lf, ",j, ow[j]);
+                    }
+                    //SAY("");
+
+                    /*SAY("Current centroids : ");
+                    for(j=0;j<p;j++)
+                    {
+                        SAY("fromClus[%ld] = %lf, ",j, c[curClust].centroid[j]);
+                        SAY("toClus[%ld] = %lf, ",j, c[l].centroid[j]);
+                    }
+                    SAY("");*/
+
+                    //SAY("BEF : nbData c%d = %ld, nbData c%d = %ld", curClust, c[curClust].nbData, l, c[l].nbData);
+
+                    // Transfer point i to cluster l
+                    CLUSTER_transferPointToCluster(dat, i, p, c, l);
+                    /*printf("Updated centroids : ");
+                      for(j=0;j<p;j++)
+                      {
+                      printf("toClus[%ld] = %lf, ",j, c[dat[i].clusterID].centroid[j]);
+                      }
+                      SAY("");*/
+                    //SAY("AFT : nbData c%d = %ld, nbData c%d = %ld", curClust, c[curClust].nbData, l, c[l].nbData);
+
+                    // Update weight of points in cluster l
+                    if(internalObjectWeights == true)
+                    {
+                        // Internal computation of objects weights
+                        CLUSTER_computeObjectWeightsInCluster(dat, n, p, c, k, l, ow, objWeiMet, dist);
+                        //CLUSTER_computeObjectWeights3(dat, n, p, c, k, ow, objWeiMet, dist);
+                        // Save current weights
+                        /*printf("Updated weights : ");
+                          for(j=0;j<n;j++)
+                          {
+                          printf("ow[%ld] = %lf, ",j, ow[j]);
+                          }
+                          SAY("");*/
+                    }
+
+                    if(internalFeatureWeights || (internalFeatureWeights && internalObjectWeights))
+                    {
+                        // Calculate squared Euclidean distance
+                        d = CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN, (double *)&(fw[l]), ow[i]);
+                    }
+                    else
+                    {
+                        // Calculate squared SSE in cluster l 
+                        SSE = CLUSTER_computeWeightedSSEInCluster(dat, n, p, c, dat[i].clusterID, fw, ow);
+                    }
+
+                    //SAY("Dist with c%d = %lf (c nbData = %ld)", l, dist, c[l].nbData);
+
+
+                    //WRN("\tSSE = %lf, minSSE = %lf", SSE, minSSE);
+                    if(SSE < minSSE)
+                    {
+                        //INF("\tDist improved, dat[%ld] moved to cluster %d", i, l);
+                        minSSE = SSE;
+                        minK = l; // Save the cluster for the min distance
+                        curClust = l;
+                    }
+                    else
+                    {
+                        //ERR("\tDist not improved, dat[%ld] go back to cluster %d", i, curClust);
+                        //SAY("BEF : nbData c%d = %ld, nbData c%d = %ld", curClust, c[curClust].nbData, l, c[l].nbData);
+                        // Transfer point i to cluster l
+                        CLUSTER_transferPointToCluster(dat, i, p, c, curClust);
+                        //SAY("AFT : nbData c%d = %ld, nbData c%d = %ld", curClust, c[curClust].nbData, l, c[l].nbData);
+                        // Reset current positions of cluster l and prevClust 
+                        /*SAY("Reset centroids : ");
+                        for(j=0;j<p;j++)
+                        {
+                            SAY("fromClus[%ld] = %lf, ",j, c[curClust].centroid[j]);
+                            SAY("toClus[%ld] = %lf, ",j, c[l].centroid[j]);
+                        }
+                        SAY("");*/
+                        /*SAY("\tRES : nbData c%d = %ld, nbData c%d = %ld", curClust, c[curClust].nbData, l, c[l].nbData);
+                        printf("\t0 - Reset centroids : ");
+                        for(j=0;j<p;j++)
+                        {
+                            printf("toClus[%ld] = %lf, ",j, c[l].centroid[j]);
+                        }
+                        SAY("");
+                        printf("\tReset centroids : ");
+                        for(j=0;j<p;j++)
+                        {
+                            c[curClust].centroid[j] = fromClus[j];
+                            c[l].centroid[j] = toClus[j];
+                            printf("toClus[%ld] = %lf, ",j, c[l].centroid[j]);
+                        }
+                        SAY("");*/
+
+                        // Reset weight of point i
+                        //printf("\tReset weights : ");
+                        if(internalObjectWeights == true)
+                        {
+                            for(j=0;j<n;j++)
+                            {
+                                ow[j] = w[j];
+                                //printf("ow[%ld] = %lf, ",j, ow[j]);
+                            }
+                            //SAY("");
+                        }
+                    }
+                }
+
+                //SAY("dat[%ld] centroid : %d (nb data = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
+            }
+        }
+
+        double finalSSE = 0.0;
+            for(l=0;l<k;l++)
+            {
+                finalSSE += CLUSTER_computeWeightedSSEInCluster(dat, n, p, c, l, fw, ow);
+            }
+
+        return finalSSE;
+    }
+}
+
+static double CLUSTER_assignWeightedDataToCentroids20(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+        double SSE = 0.0;
+        eMethodType objWeiMet = /*METHOD_MEDIAN*/METHOD_SILHOUETTE;
+
+        for(i=0;i<n;i++)
+        {
+            double minSSE = CLUSTER_computeNkWeightedSSEInCluster(dat, n, p, c, dat[i].clusterID, fw, ow);
+            // Save current cluster of point i
+            uint32_t curClust = dat[i].clusterID;
+            uint32_t minK;
+
+            //WRN("SSE for dat%ld (ow = %lf)", i, ow[i]);
+            for(l=0;l<k;l++)
+            {
+                if(l != curClust)
+                {
+                    double d;
+                    double w[n];
+
+                    //WRN("Dat[%ld] from cluster %d to cluster %d",i,curClust, l);
+
+                    // Save current positions of cluster l and prevClust 
+                    /*printf("Current centroids : ");
+                    for(j=0;j<p;j++)
+                    {
+                        fromClus[j] = c[curClust].centroid[j];
+                        toClus[j] = c[l].centroid[j];
+                        printf("toClus[%ld] = %lf, ",j, toClus[j]);
+                    }
+                    SAY("");*/
+
+                    // Save current weights
+                    //printf("Current weights : ");
+                    for(j=0;j<n;j++)
+                    {
+                        w[j] = ow[j];
+                        //printf("ow[%ld] = %lf, ",j, ow[j]);
+                    }
+                    //SAY("");
+
+                    /*SAY("Current centroids : ");
+                    for(j=0;j<p;j++)
+                    {
+                        SAY("fromClus[%ld] = %lf, ",j, c[curClust].centroid[j]);
+                        SAY("toClus[%ld] = %lf, ",j, c[l].centroid[j]);
+                    }
+                    SAY("");*/
+
+                    //SAY("BEF : nbData c%d = %ld, nbData c%d = %ld", curClust, c[curClust].nbData, l, c[l].nbData);
+
+                    // Transfer point i to cluster l
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, l);
+                    /*printf("Updated centroids : ");
+                      for(j=0;j<p;j++)
+                      {
+                      printf("toClus[%ld] = %lf, ",j, c[dat[i].clusterID].centroid[j]);
+                      }
+                      SAY("");*/
+                    //SAY("AFT : nbData c%d = %ld, nbData c%d = %ld", curClust, c[curClust].nbData, l, c[l].nbData);
+
+                    // Update weight of points in cluster l
+                    if(internalObjectWeights == true)
+                    {
+                        // Internal computation of objects weights
+                        CLUSTER_computeObjectWeightsInCluster(dat, n, p, c, k, l, ow, objWeiMet, dist);
+                        //CLUSTER_computeObjectWeights3(dat, n, p, c, k, ow, objWeiMet, dist);
+                        // Save current weights
+                        /*printf("Updated weights : ");
+                          for(j=0;j<n;j++)
+                          {
+                          printf("ow[%ld] = %lf, ",j, ow[j]);
+                          }
+                          SAY("");*/
+                    }
+
+                    if(internalFeatureWeights || (internalFeatureWeights && internalObjectWeights))
+                    {
+                        // Calculate squared Euclidean distance
+                        d = CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN, (double *)&(fw[l]), ow[i]);
+                    }
+                    else
+                    {
+                        // Calculate squared SSE in cluster l 
+                        SSE = CLUSTER_computeNkWeightedSSEInCluster(dat, n, p, c, dat[i].clusterID, fw, ow);
+                    }
+
+                    //SAY("Dist with c%d = %lf (c nbData = %ld)", l, dist, c[l].nbData);
+
+
+                    //WRN("\tSSE = %lf, minSSE = %lf", SSE, minSSE);
+                    if(SSE < minSSE)
+                    {
+                        //INF("\tDist improved, dat[%ld] moved to cluster %d", i, l);
+                        minSSE = SSE;
+                        minK = l; // Save the cluster for the min distance
+                        curClust = l;
+                    }
+                    else
+                    {
+                        //ERR("\tDist not improved, dat[%ld] go back to cluster %d", i, curClust);
+                        //SAY("BEF : nbData c%d = %ld, nbData c%d = %ld", curClust, c[curClust].nbData, l, c[l].nbData);
+                        // Transfer point i to cluster l
+                        CLUSTER_transferPointToCluster2(dat, i, p, c, curClust);
+                        //SAY("AFT : nbData c%d = %ld, nbData c%d = %ld", curClust, c[curClust].nbData, l, c[l].nbData);
+                        // Reset current positions of cluster l and prevClust 
+                        /*SAY("Reset centroids : ");
+                        for(j=0;j<p;j++)
+                        {
+                            SAY("fromClus[%ld] = %lf, ",j, c[curClust].centroid[j]);
+                            SAY("toClus[%ld] = %lf, ",j, c[l].centroid[j]);
+                        }
+                        SAY("");*/
+                        /*SAY("\tRES : nbData c%d = %ld, nbData c%d = %ld", curClust, c[curClust].nbData, l, c[l].nbData);
+                        printf("\t0 - Reset centroids : ");
+                        for(j=0;j<p;j++)
+                        {
+                            printf("toClus[%ld] = %lf, ",j, c[l].centroid[j]);
+                        }
+                        SAY("");
+                        printf("\tReset centroids : ");
+                        for(j=0;j<p;j++)
+                        {
+                            c[curClust].centroid[j] = fromClus[j];
+                            c[l].centroid[j] = toClus[j];
+                            printf("toClus[%ld] = %lf, ",j, c[l].centroid[j]);
+                        }
+                        SAY("");*/
+
+                        // Reset weight of point i
+                        //printf("\tReset weights : ");
+                        if(internalObjectWeights == true)
+                        {
+                            for(j=0;j<n;j++)
+                            {
+                                ow[j] = w[j];
+                                //printf("ow[%ld] = %lf, ",j, ow[j]);
+                            }
+                            //SAY("");
+                        }
+                    }
+                }
+
+                //SAY("dat[%ld] centroid : %d (nb data = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
+            }
+        }
+
+        double finalSSE = 0.0;
+        for(l=0;l<k;l++)
+        {
+            finalSSE += CLUSTER_computeNkWeightedSSEInCluster(dat, n, p, c, l, fw, ow);
+        }
+
+        return finalSSE;
+    }
+}
+
+static double CLUSTER_assignWeightedDataToCentroids21(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+        eMethodType objWeiMet = /*METHOD_MEDIAN*/METHOD_SILHOUETTE;
+
+        // Compute initial SSE
+        double minSSE;
+        if(internalFeatureWeights || (internalFeatureWeights && internalObjectWeights))
+        {
+            minSSE = CLUSTER_computeWeightedSSE(dat, n, p, c, k, fw, ow);
+        }
+        else
+        {
+            minSSE = CLUSTER_computeNkWeightedSSE(dat, n, p, c, k, fw, ow);
+        }
+
+        for(i=0;i<n;i++)
+        {
+            for(l=0;l<k;l++)
+            {
+                // Save datum current cluster 
+                uint32_t curClust = dat[i].clusterID;
+                double w[n];
+
+                if(l != curClust)
+                {
+                    // Save current object weights
+                    for(j=0;j<n;j++)
+                    {
+                        w[j] = ow[j];
+                    }
+
+                    // Transfer point i to cluster l
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, l);
+
+                    // Update object weight of points in cluster l
+                    if(internalObjectWeights == true)
+                    {
+                        // Internal computation of objects weights
+                        CLUSTER_computeObjectWeightsInCluster(dat, n, p, c, k, l, ow, objWeiMet, dist);
+                    }
+
+                    double sse;
+                    // Recompute SSE 
+                    if(internalFeatureWeights || (internalFeatureWeights && internalObjectWeights))
+                    {
+                        sse = CLUSTER_computeWeightedSSE(dat, n, p, c, k, fw, ow);
+                    }
+                    else
+                    {
+                        sse = CLUSTER_computeNkWeightedSSE(dat, n, p, c, k, fw, ow);
+                    }
+
+                    // Test if SSE improved
+                    if(sse < minSSE)
+                    {
+                        minSSE = sse;
+                    }
+                    else
+                    {
+                        // Transfer point i to its previous cluster 
+                        CLUSTER_transferPointToCluster2(dat, i, p, c, curClust);
+
+                        // Reset weight of point i
+                        if(internalObjectWeights == true)
+                        {
+                            for(j=0;j<n;j++)
+                            {
+                                ow[j] = w[j];
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return minSSE;
+    }
+}
+
+static double CLUSTER_assignWeightedDataToCentroids22(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+        eMethodType objWeiMet = /*METHOD_MEDIAN*/METHOD_SILHOUETTE;
+
+        for(l=0;l<k;l++)
+        {
+            // Compute SSE in cluster l
+            double refSSE = CLUSTER_computeWeightedSSEInCluster(dat, n, p, c, l, fw, ow);
+
+            for(i=0;i<n;i++)
+            {
+                double w[n];
+
+                if(internalObjectWeights == true)
+                {
+                    // Save current object weights
+                    for(j=0;j<n;j++)
+                    {
+                        w[j] = ow[j];
+                    }
+                }
+
+                // Save datum current cluster 
+                uint32_t curClust = dat[i].clusterID;
+
+                // Transfer point i to cluster l
+                CLUSTER_transferPointToCluster2(dat, i, p, c, l);
+                
+                // Update weight of points in cluster l
+                if(internalObjectWeights == true)
+                {
+                    // Internal computation of objects weights
+                    CLUSTER_computeObjectWeightsInCluster(dat, n, p, c, k, l, ow, objWeiMet, dist);
+                }
+
+                // Recompute SSE in cluster l
+                double sse;
+                if(internalFeatureWeights || (internalFeatureWeights && internalObjectWeights))
+                {
+                    sse = CLUSTER_computeWeightedSSEInCluster(dat, n, p, c, l, fw, ow);
+                }
+                else
+                {
+                    sse = CLUSTER_computeWeightedSSEInCluster(dat, n, p, c, l, fw, ow);
+                }
+
+                if(sse < refSSE)
+                {
+                    refSSE = sse;
+                }
+                else
+                {
+                    // Transfer point i to its previous cluster 
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, curClust);
+
+                    // Reset weight of points
+                    if(internalObjectWeights == true)
+                    {
+                        for(j=0;j<n;j++)
+                        {
+                            ow[j] = w[j];
+                        }
+                    }
+                }
+            }
+        }
+
+        double finalSSE = 0.0;
+        for(l=0;l<k;l++)
+        {
+            finalSSE += CLUSTER_computeWeightedSSEInCluster(dat, n, p, c, l, fw, ow);
+        }
+
+        return finalSSE;
+    }
+}
+
+static void CLUSTER_assignWeightedDataToCentroids23(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist, bool *conv)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+        eMethodType objWeiMet = METHOD_MEDIAN/*METHOD_SILHOUETTE*/;
+        eMethodType feaWeiMed = METHOD_DISPERSION;
+
+        // Set convergence variable
+        *conv = true;
+
+        for(i=0;i<n;i++)
+        {
+            // Calculte SSE reference of point i
+            double minSSE;
+            if(internalFeatureWeights || (internalFeatureWeights && internalObjectWeights))
+            {
+                minSSE = CLUSTER_computeWeightedSSEInCluster(dat, n, p, c, dat[i].clusterID, fw, ow);
+            }
+            else
+            {
+                minSSE = CLUSTER_computeNkWeightedSSEInCluster(dat, n, p, c, dat[i].clusterID, fw, ow);
+            }
+
+            // Save current cluster of point i
+            uint32_t curClust = dat[i].clusterID;
+
+            for(l=0;l<k;l++)
+            {
+                if(l != curClust)
+                {
+                    double ow_tmp[n];
+                    double fw_from_tmp[p];
+                    double fw_to_tmp[p];
+
+                    // Save current object weights
+                    if(internalObjectWeights == true)
+                    {
+                        for(j=0;j<n;j++)
+                        {
+                            ow_tmp[j] = ow[j];
+                        }
+                    }
+
+                    // Save current feature weights
+                    if(internalFeatureWeights == true)
+                    {
+                        for(j=0;j<p;j++)
+                        {
+                            fw_from_tmp[j] = fw[curClust][j];
+                            fw_to_tmp[j] = fw[l][j];
+                        }
+                    }
+
+                    // Transfer point i to cluster l
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, l);
+
+                    // Update object weights in cluster l
+                    if(internalObjectWeights == true)
+                    {
+                        // Internal computation of object weights
+                        CLUSTER_computeObjectWeightsInCluster(dat, n, p, c, k, l, ow, objWeiMet, dist);
+                    }
+
+                    // Update feature weights in cluster l
+                    if(internalFeatureWeights == true)
+                    {
+                        // Internal computation of feature weights
+                        CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+                    }
+
+                    // Calculate SSE in cluster l
+                    double SSE;
+                    if(internalFeatureWeights || (internalFeatureWeights && internalObjectWeights))
+                    {
+                        SSE = CLUSTER_computeWeightedSSEInCluster(dat, n, p, c, dat[i].clusterID, fw, ow);
+                    }
+                    else
+                    {
+                        SSE = CLUSTER_computeNkWeightedSSEInCluster(dat, n, p, c, dat[i].clusterID, fw, ow);
+                    }
+
+                    if(SSE < minSSE)
+                    {
+                        minSSE = SSE;
+                        curClust = l;
+
+                        // Reset convergence variable
+                        *conv = false;
+                    }
+                    else
+                    {
+                        // Transfer point i to cluster l
+                        CLUSTER_transferPointToCluster2(dat, i, p, c, curClust);
+
+                        // Reset weight of point i
+                        if(internalObjectWeights == true)
+                        {
+                            for(j=0;j<n;j++)
+                            {
+                                ow[j] = ow_tmp[j];
+                            }
+                        }
+
+                        // Reset feature weights
+                        if(internalFeatureWeights == true)
+                        {
+                            for(j=0;j<p;j++)
+                            {
+                                fw[curClust][j] = fw_from_tmp[j];
+                                fw[l][j] = fw_to_tmp[j];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void CLUSTER_assignWeightedDataToCentroids24(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist, bool *conv)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+        eMethodType objWeiMet = METHOD_MEDIAN/*METHOD_SILHOUETTE*/;
+        eMethodType feaWeiMed = METHOD_DISPERSION;
+
+        // Set convergence variable
+        *conv = true;
+
+        for(i=0;i<n;i++)
+        {
+            // Calculte SSE reference of point i
+            double minSSE;
+            if(internalFeatureWeights || (internalFeatureWeights && internalObjectWeights))
+            {
+                minSSE = CLUSTER_computeWeightedSSE(dat, n, p, c, k, fw, ow);
+            }
+            else
+            {
+                minSSE = CLUSTER_computeNkWeightedSSE(dat, n, p, c, k, fw, ow);
+            }
+
+            // Save current cluster of point i
+            uint32_t curClust = dat[i].clusterID;
+
+            for(l=0;l<k;l++)
+            {
+                if(l != curClust)
+                {
+                    double ow_tmp[n];
+                    double fw_from_tmp[p];
+                    double fw_to_tmp[p];
+
+                    // Save current object weights
+                    if(internalObjectWeights == true)
+                    {
+                        for(j=0;j<n;j++)
+                        {
+                            ow_tmp[j] = ow[j];
+                        }
+                    }
+
+                    // Save current feature weights
+                    if(internalFeatureWeights == true)
+                    {
+                        for(j=0;j<p;j++)
+                        {
+                            fw_from_tmp[j] = fw[curClust][j];
+                            fw_to_tmp[j] = fw[l][j];
+                        }
+                    }
+
+                    // Transfer point i to cluster l
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, l);
+
+                    // Update object weights in cluster l
+                    if(internalObjectWeights == true)
+                    {
+                        // Internal computation of object weights
+                        CLUSTER_computeObjectWeightsInCluster(dat, n, p, c, k, l, ow, objWeiMet, dist);
+                    }
+
+                    // Update feature weights in cluster l
+                    if(internalFeatureWeights == true)
+                    {
+                        // Internal computation of feature weights
+                        CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+                    }
+
+                    // Calculate SSE in cluster l
+                    double SSE;
+                    if(internalFeatureWeights || (internalFeatureWeights && internalObjectWeights))
+                    {
+                        SSE = CLUSTER_computeWeightedSSE(dat, n, p, c, k, fw, ow);
+                    }
+                    else
+                    {
+                        SSE = CLUSTER_computeNkWeightedSSE(dat, n, p, c, k, fw, ow);
+                    }
+
+                    if(SSE < minSSE)
+                    {
+                        minSSE = SSE;
+                        curClust = l;
+
+                        // Reset convergence variable
+                        *conv = false;
+                    }
+                    else
+                    {
+                        // Transfer point i to cluster l
+                        CLUSTER_transferPointToCluster2(dat, i, p, c, curClust);
+
+                        // Reset weight of point i
+                        if(internalObjectWeights == true)
+                        {
+                            for(j=0;j<n;j++)
+                            {
+                                ow[j] = ow_tmp[j];
+                            }
+                        }
+
+                        // Reset feature weights
+                        if(internalFeatureWeights == true)
+                        {
+                            for(j=0;j<p;j++)
+                            {
+                                fw[curClust][j] = fw_from_tmp[j];
+                                fw[l][j] = fw_to_tmp[j];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void CLUSTER_assignWeightedDataToCentroids25(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist, bool *conv)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+        eMethodType objWeiMet = METHOD_MEDIAN/*METHOD_SILHOUETTE*/;
+        eMethodType feaWeiMed = METHOD_DISPERSION;
+
+        // Set convergence variable
+        *conv = true;
+
+        for(i=0;i<n;i++)
+        {
+            // Calculte SSE reference of point i
+            double minSSE = CLUSTER_computeWeightedSSE(dat, n, p, c, k, fw, ow);
+
+            // Save current cluster of point i
+            uint32_t curClust = dat[i].clusterID;
+
+            for(l=0;l<k;l++)
+            {
+                if(l != curClust)
+                {
+                    double ow_tmp[n];
+                    double fw_from_tmp[p];
+                    double fw_to_tmp[p];
+
+                    // Save current object weights
+                    if(internalObjectWeights == true)
+                    {
+                        for(j=0;j<n;j++)
+                        {
+                            ow_tmp[j] = ow[j];
+                        }
+                    }
+
+                    // Save current feature weights
+                    if(internalFeatureWeights == true)
+                    {
+                        for(j=0;j<p;j++)
+                        {
+                            fw_from_tmp[j] = fw[curClust][j];
+                            fw_to_tmp[j] = fw[l][j];
+                        }
+                    }
+
+                    // Transfer point i to cluster l
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, l);
+
+                    // Update object weights in cluster l
+                    if(internalObjectWeights == true)
+                    {
+                        // Internal computation of object weights
+                        CLUSTER_computeObjectWeightsInCluster(dat, n, p, c, k, l, ow, objWeiMet, dist);
+                    }
+
+                    // Update feature weights in cluster l
+                    if(internalFeatureWeights == true)
+                    {
+                        // Internal computation of feature weights
+                        CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+                    }
+
+                    // Calculate SSE in cluster l
+                    double SSE = CLUSTER_computeWeightedSSE(dat, n, p, c, k, fw, ow);
+
+                    if(SSE < minSSE)
+                    {
+                        minSSE = SSE;
+                        curClust = l;
+
+                        // Reset convergence variable
+                        *conv = false;
+                    }
+                    else
+                    {
+                        // Transfer point i to cluster l
+                        CLUSTER_transferPointToCluster2(dat, i, p, c, curClust);
+
+                        // Reset weight of point i
+                        if(internalObjectWeights == true)
+                        {
+                            for(j=0;j<n;j++)
+                            {
+                                ow[j] = ow_tmp[j];
+                            }
+                        }
+
+                        // Reset feature weights
+                        if(internalFeatureWeights == true)
+                        {
+                            for(j=0;j<p;j++)
+                            {
+                                fw[curClust][j] = fw_from_tmp[j];
+                                fw[l][j] = fw_to_tmp[j];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void CLUSTER_assignWeightedDataToCentroids26(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double ow[n][k], bool *conv)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1;
+    }
+    else
+    {
+        uint64_t i;
+        uint32_t l;
+
+        // Set convergence variable
+        *conv = true;
+
+        for(i=0;i<n;i++)
+        {
+            double minDist;
+            double distClus;
+            uint32_t minK;
+
+            for(l=0;l<k;l++)
+            {
+                //WRN("Dist for dat%ld (ow[%d] = %lf) to c%d (nbData %ld)", i, l, ow[i][l], l, c[l].nbData);
+                double dist;
+
+                if(internalFeatureWeights || (internalFeatureWeights && internalObjectWeights))
+                {
+                    // Calculate squared Euclidean distance
+                    dist = CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN, (double *)&(fw[l]), ow[i][l]);
+                }
+                else
+                {
+                    // Calculate squared Euclidean distance
+                    dist = CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN, (double *)&(fw[l]), ow[i][l]) / (double) c[l].nbData;
+                }
+
+                //SAY("Dist with c%d = %lf (c nbData = %ld)", l, dist, c[l].nbData);
+
+                //SAY("Mindist = %lf, dist = %lf", minDist, dist);
+                if(l == 0)
+                {
+                    minDist = dist;
+                    minK = l;
+                }
+                else
+                {
+                    if(dist < minDist)
+                    {
+                        minDist = dist;
+                        minK = l; // Save the cluster for the min distance
+                    }
+                }
+            }
+
+            if(minK != dat[i].clusterID)
+            {
+                //SAY("Moved to c%d", minK);
+                c[dat[i].clusterID].nbData--; // Decrease previous cluster data number
+                dat[i].clusterID = minK; // Assign data to cluster
+                c[dat[i].clusterID].nbData++; // Increase new cluster data number
+                // Reset convergence variable
+                *conv = false;
+            }
+        }
     }
 }
 
@@ -5745,6 +7544,65 @@ static void CLUSTER_computeCentroid(data *dat, uint64_t n, uint64_t p, cluster *
                 }
             }
         }    
+    }
+}
+
+static void CLUSTER_transferPointToCluster(data *dat, uint64_t indN, uint64_t p, cluster *c, uint32_t indK)
+{
+    if(dat == NULL || indN < 0 || p < 1 || c == NULL || indK < 0)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t j;
+
+        uint32_t prevClust = dat[indN].clusterID; // Retreive datum previous cluster
+        c[prevClust].nbData--; // Decrease previous cluster data number
+        dat[indN].clusterID = indK; // Assign data to cluster
+        c[indK].nbData++; // Increase new cluster data number
+
+        // Compute the new centroid dimensions
+        for(j=0;j<p;j++)
+        {
+            c[prevClust].centroid[j] = ((c[prevClust].centroid[j] * (double)(c[prevClust].nbData + 1)) - dat[indN].dim[j])/(double)c[prevClust].nbData;   
+            c[indK].centroid[j] = ((c[indK].centroid[j] * (double)(c[indK].nbData - 1)) + dat[indN].dim[j])/(double)c[indK].nbData;
+            /*c[prevClust].centroid[j] += (c[prevClust].centroid[j] - dat[indN].dim[j])/(double)(c[prevClust].nbData + 1);
+            c[indK].centroid[j] += (dat[indN].dim[j] - c[indK].centroid[j])/(double)c[indK].nbData;*/
+        }
+    }
+}
+
+static void CLUSTER_transferPointToCluster2(data *dat, uint64_t indN, uint64_t p, cluster *c, uint32_t indK)
+{
+    if(dat == NULL || indN < 0 || p < 1 || c == NULL || indK < 0)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t j;
+
+        uint32_t prevClust = dat[indN].clusterID; // Retreive datum previous cluster
+        c[prevClust].nbData--; // Decrease previous cluster data number
+        dat[indN].clusterID = indK; // Assign data to cluster
+        c[indK].nbData++; // Increase new cluster data number
+
+        // Compute the new centroid dimensions
+        for(j=0;j<p;j++)
+        {
+            if(c[prevClust].nbData == 0)
+            {
+                c[prevClust].centroid[j] = 0.0;
+            }
+            else
+            {
+                c[prevClust].centroid[j] = ((c[prevClust].centroid[j] * (double)(c[prevClust].nbData + 1)) - dat[indN].dim[j])/(double)c[prevClust].nbData;   
+            }
+            c[indK].centroid[j] = ((c[indK].centroid[j] * (double)(c[indK].nbData - 1)) + dat[indN].dim[j])/(double)c[indK].nbData;
+            /*c[prevClust].centroid[j] += (c[prevClust].centroid[j] - dat[indN].dim[j])/(double)(c[prevClust].nbData + 1);
+            c[indK].centroid[j] += (dat[indN].dim[j] - c[indK].centroid[j])/(double)c[indK].nbData;*/
+        }
     }
 }
 
@@ -6311,6 +8169,15 @@ static void CLUSTER_initObjectWeights(double *ow, uint64_t n)
         ow[i] = 1.0;
 }
 
+static void CLUSTER_initObjectWeights2(uint64_t n, uint32_t k, double ow[n][k])
+{
+    uint64_t i;
+    uint32_t l;
+    for(i=0;i<n;i++)
+        for(l=0;l<k;l++)
+            ow[i][l] = 1.0;
+}
+
 static void CLUSTER_initFeatureWeights(uint32_t k, uint64_t p, double fw[k][p])
 {
     uint64_t j;
@@ -6575,6 +8442,66 @@ static void CLUSTER_computeObjectWeights3(data *dat, uint64_t n, uint64_t p, clu
     }
 }
 
+static void CLUSTER_computeObjectWeights4(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double ow[n][k], eMethodType met, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t i;
+        uint32_t l;
+
+        for(i=0;i<n;i++)
+        {
+            // Save point i current cluster
+            uint32_t curClust = dat[i].clusterID;
+            for(l=0;l<k;l++)
+            {
+                //SAY("From c%d to c%d", curClust, l);
+                /*if(l != curClust)
+                {*/
+                    //SAY("Transfered");
+                    // Transfer point i to cluster l
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, l);
+                /*}*/
+
+                switch(met)
+                {
+                    default:
+                    case METHOD_SILHOUETTE :
+                        {
+                            //ow[i][l] = CLUSTER_computeObjectWeightInClusterViaSilhouette(dat, n, i, p, c, k, l, dist);
+                            ow[i][l] = CLUSTER_computeObjectWeightInClusterViaSilhouette2(dat, n, i, p, c, k, l, dist);
+                            //WRN("ow[%ld][%d] = %lf(cluster %d, nbData %ld)", i, l, ow[i][l], dat[i].clusterID, c[dat[i].clusterID].nbData);
+                        }
+                        break;
+                    case METHOD_MEDIAN :
+                        {
+                            //ow[i][l] = CLUSTER_computeObjectWeightInClusterViaMedian(dat, n, i, p, c, l);
+                            ow[i][l] = CLUSTER_computeObjectWeightInClusterViaMedian2(dat, n, i, p, c, l);
+                            //WRN("ow[%ld][%d] = %lf(cluster %d, nbData %ld)", i, l, ow[i][l], dat[i].clusterID, c[dat[i].clusterID].nbData);
+                        }
+                        break;
+                    case METHOD_OTHER:
+                        {
+                            WRN("Not implemented yet");
+                        }
+                        break;
+                }
+                //WRN("ow[%ld][%d] = %lf (belongs to c%d)", i, l, ow[i][l], curClust);
+            }
+
+            /*if(dat[i].clusterID != curClust)
+            {*/
+                // Move point i to its original cluster 
+                CLUSTER_transferPointToCluster2(dat, i, p, c, curClust);
+           /* }*/
+        }
+    }
+}
+
 static void CLUSTER_computeObjectWeightsInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double *ow, eMethodType m, double **dist)
 {
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
@@ -6591,10 +8518,11 @@ static void CLUSTER_computeObjectWeightsInCluster(data *dat, uint64_t n, uint64_
                     CLUSTER_computeObjectWeightsInClusterViaSilhouette(dat, n, p, c, k, indK, ow, dist);
                 }
                 break;
-            case METHOD_SSE :
-            case METHOD_ABOD :
-            case METHOD_AVERAGE_SSE :
             case METHOD_MEDIAN :
+                {
+                    CLUSTER_computeObjectWeightsInClusterViaMedian(dat, n, p, c, indK, ow);
+                }
+                break;
             case METHOD_OTHER:
                 {
                     WRN("Not implemented yet");
@@ -7083,6 +9011,164 @@ static void CLUSTER_computeObjectWeightsInClusterViaSilhouette(data *dat, uint64
     }
 }
 
+static double CLUSTER_computeObjectWeightInClusterViaSilhouette(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || indK < 0 || indN < 0 || indN >= n)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        double a[n], b[n], s[n], sk = 0.0, ow_tmp, distCluster[k];
+        uint64_t i,j;
+        uint32_t l;
+
+        for(i=0;i<n;i++)
+        {
+            if(dat[i].clusterID == indK)
+            {
+                // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
+                double d = 0.0;
+                for(j=0;j<n;j++)
+                {
+                    if(j != i && dat[j].clusterID == dat[i].clusterID)
+                    {
+                        d += dist[i][j];
+                    }
+                }
+
+                if((c[dat[i].clusterID].nbData - 1) == 0)
+                {
+                    a[i] = 0.0;
+                }
+                else
+                {
+                    a[i] = d / (double)(c[dat[i].clusterID].nbData - 1);
+                }
+
+                // Calculate b[i], the lowest average dissimilarity of i to any other cluster, of which i is not a member
+                for(l=0;l<k;l++)
+                    distCluster[l] = 0.0;
+
+                for(j=0;j<n;j++)
+                    if(dat[j].clusterID != dat[i].clusterID)
+                        distCluster[dat[j].clusterID] += (dist[i][j]/c[dat[j].clusterID].nbData);
+                b[i] = 1.0e20;
+                for(l=0;l<k;l++)
+                    if(l != dat[i].clusterID && distCluster[l] != 0 && distCluster[l] < b[i])
+                        b[i] = distCluster[l];
+
+                // Calculate s[i]
+                if(c[dat[i].clusterID].nbData == 1)
+                {
+                    s[i] = 0;
+                }
+                else
+                {
+                    s[i] = (b[i] != a[i]) ?  ((b[i] - a[i]) / fmax(a[i], b[i])) : 0.0;
+                }
+
+                if(s[i] < 0 || s[i] > 0)
+                    s[i] = 1 - ((s[i]+1)/2); // Rescale silhouette to 0-1 
+                else // si = 0
+                    s[i] = 0.5;
+
+                // Calculate sum of s[i] per cluster 
+                sk += s[i];
+                //SAY("skTmp = %lf (s[%ld] = %lf)", sk, i, s[i]);
+            }
+        }
+
+        // Calculate object weights
+        // The sum of weights per cluster has to be equal to the number of data per cluster
+        //SAY("s[%ld] = %lf, sk = %lf, c%d nbData = %ld", indN, s[indN], sk, indK, c[indK].nbData);
+        ow_tmp = (s[indN] / sk) * (double) c[indK].nbData;
+
+        if(isnan(ow_tmp) || isinf(ow_tmp))
+        {
+            ow_tmp = 1.0;
+        }
+
+        return ow_tmp;
+    }
+}
+
+static double CLUSTER_computeObjectWeightInClusterViaSilhouette2(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || indK < 0 || indN < 0 || indN >= n)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        double a, b, s, ow_tmp, distCluster[k];
+        uint64_t j;
+        uint32_t l;
+
+        // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
+        double d = 0.0;
+        for(j=0;j<n;j++)
+        {
+            if(j != indN && dat[j].clusterID == dat[indN].clusterID)
+            {
+                d += dist[indN][j];
+            }
+        }
+
+        if((c[dat[indN].clusterID].nbData - 1) == 0)
+        {
+            a = 0.0;
+        }
+        else
+        {
+            a = d / (double)(c[dat[indN].clusterID].nbData - 1);
+        }
+
+        // Calculate b[i], the lowest average dissimilarity of i to any other cluster, of which i is not a member
+        for(l=0;l<k;l++)
+            distCluster[l] = 0.0;
+
+        for(j=0;j<n;j++)
+            if(dat[j].clusterID != dat[indN].clusterID)
+                distCluster[dat[j].clusterID] += (dist[indN][j]/c[dat[j].clusterID].nbData);
+        b = 1.0e20;
+        for(l=0;l<k;l++)
+            if(l != dat[indN].clusterID && distCluster[l] != 0 && distCluster[l] < b)
+                b = distCluster[l];
+
+        // Calculate s[i]
+        if(c[dat[indN].clusterID].nbData == 1)
+        {
+            s = 0;
+        }
+        else
+        {
+            s = (b != a) ?  ((b - a) / fmax(a, b)) : 0.0;
+        }
+
+        if(s < 0 || s > 0)
+            s = 1 - ((s + 1) / 2); // Rescale silhouette to 0-1 
+        else // si = 0
+            s = 0.5;
+
+        //SAY("skTmp = %lf (s[%ld] = %lf)", sk, i, s[i]);
+
+        // Calculate object weights
+        // The sum of weights per cluster has to be equal to the number of data per cluster
+        //SAY("s[%ld] = %lf, sk = %lf, c%d nbData = %ld", indN, s[indN], sk, indK, c[indK].nbData);
+        ow_tmp = s;
+
+        if(isnan(ow_tmp) || isinf(ow_tmp))
+        {
+            ow_tmp = 1.0;
+        }
+
+        return ow_tmp;
+    }
+}
+
 static void CLUSTER_computeObjectWeightsViaSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow)
 {
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
@@ -7408,6 +9494,291 @@ static void CLUSTER_computeObjectWeightsViaMedian2(data *dat, uint64_t n, uint64
     }
 }
 
+static int cmpfunc(const void * a, const void * b)
+{
+    return (*(double*)a > *(double*)b) ? 1 : (*(double*)a < *(double*)b) ? -1:0 ;
+}
+
+static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 0 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+        double median[p]; // Median per cluster
+        double w[n]; // Tmp weights
+        double sumWeights = 0.0; // Sum of weights in cluster k
+
+        double datPerCluster[p][c[k].nbData];
+        
+        for(j=0;j<p;j++)
+        {
+            uint64_t m = 0;
+            for(i=0;i<n;i++)
+            {
+                if(dat[i].clusterID == k)
+                {
+                    datPerCluster[j][m] = dat[i].dim[j];
+                    m++;
+                }
+            }
+        }
+
+        /*printf("BEF : ");
+        for(j=0;j<c[k].nbData;j++)
+        {
+            printf("dim[1][%ld] = %lf, ", j, datPerCluster[0][j]);
+        }
+        SAY("");*/
+
+        for(j=0;j<p;j++)
+        {
+            qsort((double *)&(datPerCluster[j]), c[k].nbData, sizeof(double), cmpfunc);
+        }
+
+        /*printf("AFT : ");
+        for(j=0;j<c[k].nbData;j++)
+        {
+            printf("dim[1][%ld] = %lf, ", j, datPerCluster[0][j]);
+        }
+        SAY("");*/
+
+        // Compute the median
+        for(j=0;j<p;j++)
+        {
+            if(!(c[k].nbData % 2))
+            {
+                median[j] = (datPerCluster[j][(c[k].nbData / 2)] + datPerCluster[j][(c[k].nbData / 2) - 1]) / 2;
+            }
+            else
+            {
+                median[j] = datPerCluster[j][((c[k].nbData + 1) / 2) - 1];
+            }
+            //SAY("median[%d][%ld] = %lf", l, j, median[l][j]);
+        }
+
+
+        // Compute tmp weights
+        for(i=0;i<n;i++)
+        {
+            if(dat[i].clusterID == k)
+            {
+                // Initialize tmp weights
+                w[i] = 0.0;
+
+                for(j=0;j<p;j++)
+                {
+                    w[i] += pow((dat[i].dim[j] - median[j]), 2.0); 
+                }
+
+                sumWeights += w[i];
+            }
+        }
+
+        // Compute objects weights
+        for(i=0;i<n;i++)
+        {
+            if(dat[i].clusterID == k)
+            {
+                if(c[dat[i].clusterID].nbData == 1)
+                {
+                    ow[i] = 1.0;
+                }
+                else
+                {
+                    ow[i] = (w[i] / sumWeights) * (double) c[dat[i].clusterID].nbData;
+                }
+            }
+        }
+    }
+}
+
+static double CLUSTER_computeObjectWeightInClusterViaMedian(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t indK)
+{
+    if(dat == NULL || n < 2 || indN < 0 || indN > n || p < 1 || c == NULL || indK < 0)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+        double median[p]; // Median
+        double w[n]; // Tmp weights
+        double sumWeights = 0.0; // Sum of weights in cluster k
+        double ow_tmp;
+
+        double datPerCluster[p][c[indK].nbData];
+        
+        for(j=0;j<p;j++)
+        {
+            uint64_t m = 0;
+            for(i=0;i<n;i++)
+            {
+                if(dat[i].clusterID == indK)
+                {
+                    datPerCluster[j][m] = dat[i].dim[j];
+                    m++;
+                }
+            }
+        }
+
+        /*printf("BEF : ");
+        for(j=0;j<c[k].nbData;j++)
+        {
+            printf("dim[1][%ld] = %lf, ", j, datPerCluster[0][j]);
+        }
+        SAY("");*/
+
+        for(j=0;j<p;j++)
+        {
+            qsort((double *)&(datPerCluster[j]), c[indK].nbData, sizeof(double), cmpfunc);
+        }
+
+        /*printf("AFT : ");
+        for(j=0;j<c[k].nbData;j++)
+        {
+            printf("dim[1][%ld] = %lf, ", j, datPerCluster[0][j]);
+        }
+        SAY("");*/
+
+        // Compute the median
+        for(j=0;j<p;j++)
+        {
+            if(!(c[indK].nbData % 2))
+            {
+                median[j] = (datPerCluster[j][(c[indK].nbData / 2)] + datPerCluster[j][(c[indK].nbData / 2) - 1]) / 2;
+            }
+            else
+            {
+                median[j] = datPerCluster[j][((c[indK].nbData + 1) / 2) - 1];
+            }
+            //SAY("median[%d][%ld] = %lf", l, j, median[l][j]);
+        }
+
+
+        // Compute tmp weights
+        for(i=0;i<n;i++)
+        {
+            if(dat[i].clusterID == indK)
+            {
+                // Initialize tmp weights
+                w[i] = 0.0;
+
+                for(j=0;j<p;j++)
+                {
+                    w[i] += pow((dat[i].dim[j] - median[j]), 2.0); 
+                }
+
+                sumWeights += w[i];
+            }
+        }
+
+        // Compute objects weights
+        if(c[indK].nbData == 1)
+        {
+            ow_tmp = 1.0;
+        }
+        else
+        {
+            ow_tmp = (w[indN] / sumWeights) * (double) c[indK].nbData;
+        }
+
+        return ow_tmp;
+    }
+}
+
+static double CLUSTER_computeObjectWeightInClusterViaMedian2(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t indK)
+{
+    if(dat == NULL || n < 2 || indN < 0 || indN > n || p < 1 || c == NULL || indK < 0)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+        double median[p]; // Median
+        double w; // Tmp weights
+        double ow_tmp;
+        double datPerCluster[p][c[indK].nbData];
+        
+        for(j=0;j<p;j++)
+        {
+            uint64_t m = 0;
+            for(i=0;i<n;i++)
+            {
+                if(dat[i].clusterID == indK)
+                {
+                    datPerCluster[j][m] = dat[i].dim[j];
+                    m++;
+                }
+            }
+        }
+
+        /*printf("BEF : ");
+        for(j=0;j<c[k].nbData;j++)
+        {
+            printf("dim[1][%ld] = %lf, ", j, datPerCluster[0][j]);
+        }
+        SAY("");*/
+
+        for(j=0;j<p;j++)
+        {
+            qsort((double *)&(datPerCluster[j]), c[indK].nbData, sizeof(double), cmpfunc);
+        }
+
+        /*printf("AFT : ");
+        for(j=0;j<c[k].nbData;j++)
+        {
+            printf("dim[1][%ld] = %lf, ", j, datPerCluster[0][j]);
+        }
+        SAY("");*/
+
+        // Compute the median
+        for(j=0;j<p;j++)
+        {
+            if(!(c[indK].nbData % 2))
+            {
+                median[j] = (datPerCluster[j][(c[indK].nbData / 2)] + datPerCluster[j][(c[indK].nbData / 2) - 1]) / 2;
+            }
+            else
+            {
+                median[j] = datPerCluster[j][((c[indK].nbData + 1) / 2) - 1];
+            }
+            //SAY("median[%d][%ld] = %lf", l, j, median[l][j]);
+        }
+
+
+        // Compute tmp weights
+        // Initialize tmp weights
+        w = 0.0;
+
+        for(j=0;j<p;j++)
+        {
+            w += pow((dat[indN].dim[j] - median[j]), 2.0); 
+        }
+
+        // Compute objects weights
+        if(c[indK].nbData == 1)
+        {
+            ow_tmp = 1.0;
+        }
+        else
+        {
+            ow_tmp = w;
+        }
+
+        return ow_tmp;
+    }
+}
+
 static void CLUSTER_computeObjectWeightsViaMedian3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow)
 {
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
@@ -7629,7 +10000,76 @@ static double CLUSTER_computeWeightedSSE(data *dat, uint64_t n, uint64_t p, clus
     }
 }
 
+static double CLUSTER_computeNkWeightedSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        double SSE = 0.0;
+        uint64_t i;
+
+        for(i=0;i<n;i++)
+        {
+            SSE += CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN, (double *)&(fw[dat[i].clusterID]), ow[i])/(double)c[dat[i].clusterID].nbData;
+        }
+
+        return SSE;
+    }
+}
+
+static double CLUSTER_computeSSEInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 0)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        double SSE = 0.0;
+        uint64_t i;
+
+        for(i=0;i<n;i++)
+        {
+            if(dat[i].clusterID == k)
+            {
+                SSE += CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN);
+            }
+        }
+
+        return SSE;
+    }
+}
+
 static double CLUSTER_computeWeightedSSEInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 0)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        double SSE = 0.0;
+        uint64_t i;
+
+        for(i=0;i<n;i++)
+        {
+            if(dat[i].clusterID == k)
+            {
+                SSE += CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN, (double *)&(fw[dat[i].clusterID]), ow[i]);
+            }
+        }
+
+        return SSE;
+    }
+}
+
+static double CLUSTER_computeNkWeightedSSEInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], double *ow)
 {
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 0)
     {
