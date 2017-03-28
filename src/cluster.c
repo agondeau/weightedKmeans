@@ -631,7 +631,7 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
 {
     uint32_t i, k, o;
     uint64_t j;
-    double statSil[kmax], statVRC2[kmax], statCH[kmax], statCH2[kmax], statSSE[kmax];
+    double statSil[kmax], statVRC2[kmax], statCH[kmax];
     uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
 
     // Initialize statistics
@@ -640,8 +640,6 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
         statSil[k] = -1.0;
         statVRC2[k] = 0.0;
         statCH[k] = 0.0;
-        statCH2[k] = 0.0;
-        statSSE[k] = 1.0e20;
     }
 
     // Compute total sum of squares 
@@ -839,12 +837,6 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
             chMax = statCH[k];
             kChMax = k;
         }
-
-        /*if(statCH2[k] > ch2Max)
-        {
-            ch2Max = statCH2[k];
-            kCh2Max = k;
-        }*/
     }
 
     WRN("");
@@ -893,7 +885,7 @@ void CLUSTER_computeWeightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t 
 {
     uint32_t i, k, o;
     uint64_t j;
-    double statSil[kmax], statVRC2[kmax], statCH[kmax], statSSE[kmax];
+    double statSil[kmax], statVRC2[kmax], statCH[kmax];
     uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
     double ow[n]; // Objects weights
     double fw[kmax][p]; // Features weights
@@ -904,7 +896,6 @@ void CLUSTER_computeWeightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t 
         statSil[k] = -1.0;
         statVRC2[k] = 0.0;
         statCH[k] = 0.0;
-        statSSE[k] = 1.0e20;
     }
 
     // Compute total sum of squares 
@@ -1150,7 +1141,7 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
 {
     uint32_t i, k, o;
     uint64_t j;
-    double statSil[kmax], statVRC2[kmax], statCH[kmax], statSSE[kmax];
+    double statSil[kmax], statVRC2[kmax], statCH[kmax];
     uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
     double ow[n]; // Objects weights
     double fw[kmax][p]; // Features weights
@@ -1161,7 +1152,6 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
         statSil[k] = -1.0;
         statVRC2[k] = 0.0;
         statCH[k] = 0.0;
-        statSSE[k] = 1.0e20;
     }
 
     // Compute total sum of squares 
@@ -1321,7 +1311,7 @@ void CLUSTER_computeWeightedKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t 
 {
     uint32_t i, k, o;
     uint64_t j;
-    double statSil[kmax], statVRC2[kmax], statCH[kmax], statSSE[kmax];
+    double statSil[kmax], statVRC2[kmax], statCH[kmax];
     uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
     //double ow[n];
     double ow[n][kmax]; // Objects weights
@@ -1333,7 +1323,6 @@ void CLUSTER_computeWeightedKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t 
         statSil[k] = -1.0;
         statVRC2[k] = 0.0;
         statCH[k] = 0.0;
-        statSSE[k] = 1.0e20;
     }
 
     // Compute total sum of squares 
@@ -1984,7 +1973,6 @@ static double CLUSTER_assignDataToCentroids7(data *dat, uint64_t n, uint64_t p, 
         for(i=0;i<n;i++)
         {
             double minDist;
-            double distClus;
             uint32_t minK;
             //INF("Dist for dat%ld", i);
             for(l=0;l<k;l++)
@@ -2038,7 +2026,6 @@ static double CLUSTER_assignDataToCentroids8(data *dat, uint64_t n, uint64_t p, 
         for(i=0;i<n;i++)
         {
             double minDist;
-            double distClus;
             uint32_t minK;
             //INF("Dist for dat%ld", i);
             for(l=0;l<k;l++)
@@ -2100,8 +2087,6 @@ static double CLUSTER_assignDataToCentroids9(data *dat, uint64_t n, uint64_t p, 
             {
                 if(l != curClust)
                 {
-                    double d;
-
                     // Transfer point i to cluster l
                     CLUSTER_transferPointToCluster2(dat, i, p, c, l);
 
@@ -2185,7 +2170,6 @@ static void CLUSTER_assignDataToCentroids11(data *dat, uint64_t n, uint64_t p, c
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
     {
         ERR("Bad parameter");
-        return -1;
     }
     else
     {
@@ -2200,7 +2184,6 @@ static void CLUSTER_assignDataToCentroids11(data *dat, uint64_t n, uint64_t p, c
         for(i=0;i<n;i++)
         {
             double minDist;
-            double distClus;
             uint32_t minK;
 
             // For each cluster
@@ -2241,7 +2224,6 @@ static void CLUSTER_assignDataToCentroids12(data *dat, uint64_t n, uint64_t p, c
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
     {
         ERR("Bad parameter");
-        return -1;
     }
     else
     {
@@ -2302,7 +2284,6 @@ static double CLUSTER_assignWeightedDataToCentroids15(data *dat, uint64_t n, uin
         for(i=0;i<n;i++)
         {
             double minDist;
-            double distClus;
             uint32_t minK;
             //WRN("Dist for dat%ld (ow = %lf)", i, ow[i]);
             for(l=0;l<k;l++)
@@ -2365,7 +2346,6 @@ static double CLUSTER_assignWeightedDataToCentroids16(data *dat, uint64_t n, uin
         for(i=0;i<n;i++)
         {
             double minDist;
-            double distClus;
             uint32_t minK;
             //WRN("Dist for dat%ld (ow = %lf)", i, ow[i]);
             for(l=0;l<k;l++)
@@ -3223,7 +3203,6 @@ static void CLUSTER_assignWeightedDataToCentroids23(data *dat, uint64_t n, uint6
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
     {
         ERR("Bad parameter");
-        return -1;
     }
     else
     {
@@ -3349,7 +3328,6 @@ static void CLUSTER_assignWeightedDataToCentroids24(data *dat, uint64_t n, uint6
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
     {
         ERR("Bad parameter");
-        return -1;
     }
     else
     {
@@ -3475,7 +3453,6 @@ static void CLUSTER_assignWeightedDataToCentroids25(data *dat, uint64_t n, uint6
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
     {
         ERR("Bad parameter");
-        return -1;
     }
     else
     {
@@ -3585,7 +3562,6 @@ static void CLUSTER_assignWeightedDataToCentroids26(data *dat, uint64_t n, uint6
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
     {
         ERR("Bad parameter");
-        return -1;
     }
     else
     {
@@ -4696,7 +4672,6 @@ static void CLUSTER_computeObjectWeights3(data *dat, uint64_t n, uint64_t p, clu
     {
         switch(m)
         {
-            default:
             case METHOD_SILHOUETTE :
                 {
                     //CLUSTER_computeObjectWeightsViaSilhouette3(dat, n, p, c, k, ow, dist);
@@ -4811,7 +4786,6 @@ static void CLUSTER_computeObjectWeightsInCluster(data *dat, uint64_t n, uint64_
     {
         switch(m)
         {
-            default:
             case METHOD_SILHOUETTE :
                 {
                     CLUSTER_computeObjectWeightsInClusterViaSilhouette(dat, n, p, c, k, indK, ow, dist);
@@ -4827,6 +4801,7 @@ static void CLUSTER_computeObjectWeightsInCluster(data *dat, uint64_t n, uint64_
                     CLUSTER_computeObjectWeightsInClusterViaDistCentroid(dat, n, p, c, k, indK, ow);
                 }
                 break;
+            default:
                 {
                     WRN("Not implemented yet");
                 }
@@ -6386,11 +6361,9 @@ static void CLUSTER_computeWSS(data *dat, uint64_t n, uint64_t p, cluster *c, ui
     if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
     {
         ERR("Bad parameter");
-        return -1.0;
     }
     else
     {
-        double SSE = 0.0;
         uint64_t i;
         uint32_t l;
 
