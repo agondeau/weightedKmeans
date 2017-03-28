@@ -153,6 +153,8 @@ static void CLUSTER_assignWeightedDataToCentroids25(data *dat, uint64_t n, uint6
 
 static void CLUSTER_assignWeightedDataToCentroids26(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double ow[n][k], bool *conv);
 
+static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, eMethodType feaWeiMed, double fw[k][p], bool internalObjectWeights, eMethodType objWeiMet, double *ow, double **dist, double wss[k], bool *conv);
+
 /** @brief Computes the squared distance between a point and a cluster.
  *
  *  @param dat The pointer to the datum.
@@ -567,6 +569,10 @@ static double CLUSTER_computeSSEInCluster(data *dat, uint64_t n, uint64_t p, clu
 
 static void CLUSTER_computeWSS(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double wss[k]);
 
+static void CLUSTER_computeNkWeightedWSS(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double wss[k], double fw[k][p], double *ow);
+
+static double CLUSTER_computeNkWeightedWSSInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double fw[k][p], double *ow);
+
 /** @brief Computes the sum of squared errors for a 
  *         clustering. 
  *
@@ -952,7 +958,7 @@ void CLUSTER_computeWeightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t 
             CLUSTER_initClusters(p, c, k);
 
             //double wSSE = CLUSTER_weightedKmeans5(dat, n, p, k, c, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
-            double wSSE = CLUSTER_weightedKmeans6(dat, n, p, k, c, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
+            CLUSTER_weightedKmeans6(dat, n, p, k, c, internalFeatureWeights, fw, internalObjectWeights, ow, dist);
 
             //SAY("SSE = %lf, TSS = %lf, n = %ld, k = %d", SSE, TSS2, n, k);
 
@@ -1736,13 +1742,20 @@ static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_
     }
     else
     {
+        double wss[k];
+
         // Initialization
-        eMethodType objWeiMed = METHOD_MEDIAN/*METHOD_SILHOUETTE*/;
+        //eMethodType objWeiMed = METHOD_MEDIAN;
+        //eMethodType objWeiMed = METHOD_SILHOUETTE;
+        eMethodType objWeiMed = METHOD_DIST_CENTROID;
         eMethodType feaWeiMed = METHOD_DISPERSION;
         CLUSTER_fakeDataAssignmentToCentroids(dat, n, k);
         CLUSTER_randomCentroids(dat, n, p, c, k);
         CLUSTER_assignDataToCentroids7(dat, n, p, c, k);
         CLUSTER_computeCentroids(dat, n, p, c, k);
+        CLUSTER_computeNkWeightedWSS(dat, n, p, c, k, wss, fw, ow);
+
+        // Computes weights
         if(internalFeatureWeights == true)
         {
             CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
@@ -1759,7 +1772,8 @@ static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_
             // Data assignation
             //CLUSTER_assignWeightedDataToCentroids23(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist, &conv); // Based on WSS and 1/nk
             //CLUSTER_assignWeightedDataToCentroids24(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist, &conv); // Based on SSE and 1/nk
-            CLUSTER_assignWeightedDataToCentroids25(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist, &conv); // Based on SSE
+            //CLUSTER_assignWeightedDataToCentroids25(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist, &conv); // Based on SSE
+            CLUSTER_assignWeightedDataToCentroids27(dat, n, p, c, k, internalFeatureWeights, feaWeiMed, fw, internalObjectWeights, objWeiMed, ow, dist, wss, &conv); // Based on sum of WSS
 
             iter++;
         }
@@ -3619,6 +3633,188 @@ static void CLUSTER_assignWeightedDataToCentroids26(data *dat, uint64_t n, uint6
                 c[dat[i].clusterID].nbData++; // Increase new cluster data number
                 // Reset convergence variable
                 *conv = false;
+            }
+        }
+    }
+}
+
+static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, eMethodType feaWeiMed, double fw[k][p], bool internalObjectWeights, eMethodType objWeiMet, double *ow, double **dist, double wss[k], bool *conv)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || conv == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t i, j;
+        uint32_t l;
+
+        // Set convergence variable
+        *conv = true;
+
+        /*double sumWei[k];
+        for(l=0;l<k;l++)
+        {
+            sumWei[l] = 0.0;
+        }
+
+        for(i=0;i<n;i++)
+        {
+            sumWei[dat[i].clusterID] += ow[i];
+        }
+        for(l=0;l<k;l++)
+        {
+            //SAY("WSS[%d] = %lf", l, wss[l]);
+            INF("SumWei[%d] = %lf (nbData = %ld)", l, sumWei[l], c[l].nbData);
+        }*/
+
+        for(i=0;i<n;i++)
+        {
+            //WRN("For dat%ld from clust%d (nbData %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
+            // Save current cluster of point i
+            uint32_t curClust = dat[i].clusterID;
+
+            // Compute WSS of datum i cluster without datum i
+            uint32_t tmpClust = (curClust + 1 >= k) ? 0 : curClust + 1; // Define a tmp cluster
+            //SAY("tmpClust = %d", tmpClust);
+
+            CLUSTER_transferPointToCluster2(dat, i, p, c, tmpClust); // Transfer datum i to tmp cluster
+
+            double ow_fromTmp[n];
+            // Update weights in former datum i cluster 
+            if(internalObjectWeights == true)
+            {
+                // Internal computation of object weights
+                CLUSTER_computeObjectWeightsInCluster(dat, n, p, c, k, curClust, ow_fromTmp, objWeiMet, dist);
+            }
+
+            // Update feature weights in cluster l
+            if(internalFeatureWeights == true)
+            {
+                // Internal computation of feature weights
+                CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+            }
+
+            /*double sum = 0.0;
+            for(j=0;j<n;j++)
+            {
+                if(dat[j].clusterID == curClust)
+                {
+                    printf("ow[%ld] = %lf ", j, ow[j]);
+                    sum +=  ow[j];
+                }
+            }
+            printf("ow[%ld] = %lf ", i, ow[i]);
+            sum +=  ow[i];
+            SAY("");
+            SAY("weiSum = %lf (nbData = %ld)", sum, c[curClust].nbData + 1);
+
+            sum = 0.0;
+            for(j=0;j<n;j++)
+            {
+                if(dat[j].clusterID == curClust)
+                {
+                    printf("ow[%ld] = %lf ", j, ow_fromTmp[j]);
+                    sum +=  ow_fromTmp[j];
+                }
+            }
+            SAY("");
+            SAY("weiSum = %lf (nbData = %ld)", sum, c[curClust].nbData);*/
+
+            double tmpFromWss = CLUSTER_computeNkWeightedWSSInCluster(dat, n, p, c, k, curClust, fw, ow_fromTmp); // Compute from WSS
+            //SAY("WSS%d = %lf (without dat%ld)", curClust, tmpFromWss, i);
+            //SAY("WSS%d = %lf (with dat%ld, ow[%ld] = %lf)", curClust, wss[curClust], i, i, ow[i]);
+
+            double minSumWss = 1e20;
+            uint32_t minK;
+            double tmpToWss[k];
+            double ow_toTmp[k][n];
+            bool improved = false;
+
+            for(l=0;l<k;l++)
+            {
+                if(l != curClust)
+                {
+                    double sumWssRef = wss[curClust] + wss[l];
+
+                    // Compute WSS of cluster l with datum i
+                    CLUSTER_transferPointToCluster2(dat, i, p, c, l); // Transfer datum i to tmp cluster
+                    // Update weights in former datum i cluster 
+                    if(internalObjectWeights == true)
+                    {
+                        // Internal computation of object weights
+                        CLUSTER_computeObjectWeightsInCluster(dat, n, p, c, k, l, &(ow_toTmp[l]), objWeiMet, dist);
+                    }
+
+                    // Update feature weights in cluster l
+                    if(internalFeatureWeights == true)
+                    {
+                        // Internal computation of feature weights
+                        CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+                    }
+                    tmpToWss[l] = CLUSTER_computeNkWeightedWSSInCluster(dat, n, p, c, k, l, fw, &(ow_toTmp[l])); // Compute to WSS
+
+                    double newWss = tmpFromWss + tmpToWss[l];
+
+                    // Test if the deplacement from curClust to l improves the sum of WSS
+                    //SAY("WSS%d = %lf (with dat%ld, ow[%ld] = %lf)", l, tmpToWss[l], i, i, ow_toTmp[l][i]);
+                    //SAY("WSS%d = %lf (without dat%ld)", l, wss[l], i);
+                    //SAY("sumWssRef = %lf, newWss = %lf", sumWssRef, newWss);
+                    if(newWss < sumWssRef)
+                    {
+                        improved = true;
+                        
+                        //INF("WSS improved!!!!!!!!!!!!");
+                        // Test if the new sum of WSS is minimal
+                        if(newWss < minSumWss)
+                        {
+                            //INF("WSS better");
+                            //SAY("sumWssRef = %lf, newWss = %lf, minSumWss = %lf, minK = %d", sumWssRef, newWss, minSumWss, l);
+                            minSumWss = newWss;
+                            minK = l;
+                        }
+
+                        // Reset convergence variable
+                        *conv = false;
+                    }
+                }
+            }
+
+            // Test if WSS improved
+            if(improved == true)
+            {
+                CLUSTER_transferPointToCluster2(dat, i, p, c, minK); // Transfer datum i to minK cluster
+                wss[curClust] = tmpFromWss;
+                wss[minK] = tmpToWss[minK];
+
+                // Update weights 
+                if(internalObjectWeights == true)
+                {
+                    for(j=0;j<n;j++)
+                    {
+                        if(dat[j].clusterID == curClust)
+                        {
+                            ow[j] = ow_fromTmp[j];
+                        }
+
+                        if(dat[j].clusterID == minK)
+                        {
+                            ow[j] = ow_toTmp[minK][j];
+                        }
+                    } 
+                }
+
+                // Update feature weights in cluster l
+                if(internalFeatureWeights == true)
+                {
+                    // Internal computation of feature weights
+                    CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+                }
+            }
+            else
+            {
+                // Transfer datum i to initial cluster
+                CLUSTER_transferPointToCluster2(dat, i, p, c, curClust); 
             }
         }
     }
@@ -5786,7 +5982,7 @@ static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n
     else
     {
         uint64_t i, j;
-        uint32_t l;
+        uint64_t l;
         double median[p]; // Median per cluster
         double w[n]; // Tmp weights
         double sumWeights = 0.0; // Sum of weights in cluster k
@@ -5807,27 +6003,22 @@ static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n
         }
 
         /*printf("BEF : ");
-        for(j=0;j<c[k].nbData;j++)
+        for(l=0;l<p;l++)
         {
-            printf("dim[1][%ld] = %lf, ", j, datPerCluster[0][j]);
+            for(j=0;j<c[k].nbData;j++)
+            {
+                printf("dim[%ld][%ld] = %lf, ", l, j, datPerCluster[l][j]);
+            }
         }
+        
         SAY("");*/
 
         for(j=0;j<p;j++)
         {
+            // Sort dimension value in ascending way
             qsort((double *)&(datPerCluster[j]), c[k].nbData, sizeof(double), cmpfunc);
-        }
 
-        /*printf("AFT : ");
-        for(j=0;j<c[k].nbData;j++)
-        {
-            printf("dim[1][%ld] = %lf, ", j, datPerCluster[0][j]);
-        }
-        SAY("");*/
-
-        // Compute the median
-        for(j=0;j<p;j++)
-        {
+            // Compute the median
             if(!(c[k].nbData % 2))
             {
                 median[j] = (datPerCluster[j][(c[k].nbData / 2)] + datPerCluster[j][(c[k].nbData / 2) - 1]) / 2;
@@ -5836,9 +6027,18 @@ static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n
             {
                 median[j] = datPerCluster[j][((c[k].nbData + 1) / 2) - 1];
             }
-            //SAY("median[%d][%ld] = %lf", l, j, median[l][j]);
+            //SAY("median[%ld] = %lf", j, median[j]);
         }
 
+        /*printf("AFT : ");
+        for(l=0;l<p;l++)
+        {
+            for(j=0;j<c[k].nbData;j++)
+            {
+                printf("dim[%ld][%ld] = %lf, ", l, j, datPerCluster[l][j]);
+            }
+        }
+        SAY("");*/
 
         // Compute tmp weights
         for(i=0;i<n;i++)
@@ -6376,6 +6576,53 @@ static void CLUSTER_computeWSS(data *dat, uint64_t n, uint64_t p, cluster *c, ui
         {
             wss[dat[i].clusterID] += CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN); 
         }
+    }
+}
+
+static void CLUSTER_computeNkWeightedWSS(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double wss[k], double fw[k][p], double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t i;
+        uint32_t l;
+
+        for(l=0;l<k;l++)
+        {
+            wss[l] = 0.0;
+        }
+
+        for(i=0;i<n;i++)
+        {
+            wss[dat[i].clusterID] += CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN, (double *)&(fw[dat[i].clusterID]), ow[i])/(double)c[dat[i].clusterID].nbData; 
+        }
+    }
+}
+
+static double CLUSTER_computeNkWeightedWSSInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double fw[k][p], double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || indK < 0)
+    {
+        ERR("Bad parameter");
+        return -1.0;
+    }
+    else
+    {
+        uint64_t i;
+        double wss = 0.0;
+
+        for(i=0;i<n;i++)
+        {
+            if(dat[i].clusterID == indK)
+            {
+                wss += CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[indK]), DISTANCE_EUCLIDEAN, (double *)&(fw[indK]), ow[i])/(double)c[indK].nbData;
+            }
+        }
+
+        return wss;
     }
 }
 

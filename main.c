@@ -185,7 +185,9 @@ int main(int argc, char *argv[]) {
             {
                 INF("Weighted k-means");
                 //CLUSTER_computeWeightedKmeans(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName);
-                CLUSTER_computeWeightedKmeans2(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName);
+                //CLUSTER_computeWeightedKmeans2(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName);
+                CLUSTER_computeWeightedKmeans3(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName); // ow[n]
+                //CLUSTER_computeWeightedKmeans4(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName); // ow[n][k]
             }
             else
             {
