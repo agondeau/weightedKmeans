@@ -54,6 +54,7 @@ typedef enum _eMethodType
     METHOD_ABOD,
     METHOD_AVERAGE_SSE,
     METHOD_MEDIAN,
+    METHOD_DIST_CENTROID,
     METHOD_DISPERSION,
     METHOD_OTHER
 } eMethodType; 
@@ -486,6 +487,9 @@ static double CLUSTER_computeObjectWeightInClusterViaMedian(data *dat, uint64_t 
 
 static double CLUSTER_computeObjectWeightInClusterViaMedian2(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t indK);
 
+
+static void CLUSTER_computeObjectWeightsViaDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
+
 /** @brief Computes objects weights via the sum 
  *         of squared errors.
  *
@@ -542,6 +546,10 @@ static void CLUSTER_computeObjectWeightsViaMedian2(data *dat, uint64_t n, uint64
 static void CLUSTER_computeObjectWeightsViaMedian3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
 
 static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow);
+
+
+
+static void CLUSTER_computeObjectWeightsInClusterViaDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double *ow);
 
 /** @brief Computes the sum of squared errors for a 
  *         clustering. 
@@ -4719,7 +4727,12 @@ static void CLUSTER_computeObjectWeights3(data *dat, uint64_t n, uint64_t p, clu
                     //CLUSTER_computeObjectWeightsViaMedian3(dat, n, p, c, k, ow);
                 }
                 break;
-            case METHOD_OTHER:
+            case METHOD_DIST_CENTROID :
+                {
+                    CLUSTER_computeObjectWeightsViaDistCentroid(dat, n, p, c, k, ow);
+                }
+                break;
+            default:
                 {
                     WRN("Not implemented yet");
                 }
@@ -4809,7 +4822,11 @@ static void CLUSTER_computeObjectWeightsInCluster(data *dat, uint64_t n, uint64_
                     CLUSTER_computeObjectWeightsInClusterViaMedian(dat, n, p, c, indK, ow);
                 }
                 break;
-            case METHOD_OTHER:
+            case METHOD_DIST_CENTROID :
+                {
+                    CLUSTER_computeObjectWeightsInClusterViaDistCentroid(dat, n, p, c, k, indK, ow);
+                }
+                break;
                 {
                     WRN("Not implemented yet");
                 }
@@ -5878,6 +5895,130 @@ static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n
                 {
                     ow[i] = (w[i] / sumWeights) * (double) c[dat[i].clusterID].nbData;
                 }
+            }
+        }
+    }
+}
+
+static void CLUSTER_computeObjectWeightsViaDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        uint64_t i, j;
+        uint64_t l;
+        double w[n]; // Tmp weights
+        double sumWeights[k]; // Sum of weights in cluster k
+
+        // Init sum of weights
+        for(l=0;l<k;l++)
+        {
+            sumWeights[l] = 0.0;
+        }
+
+        // Compute tmp weights
+        for(i=0;i<n;i++)
+        {
+            // Initialize tmp weights
+            w[i] = 1e20;
+
+            for(l=0;l<k;l++)
+            {
+                if(l != dat[i].clusterID)
+                {
+                    // Calculate squared Euclidean distance
+                    double dist = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN);
+
+                    //SAY("w[%ld] = %lf, dist = %lf for c%d (k = %d, indK = %d)", i, w[i], dist, l, k, indK);
+                    if(dist < w[i])
+                    {
+                        w[i] = dist;
+                    }
+                }
+            } 
+            sumWeights[dat[i].clusterID] += w[i];
+        }
+
+        // Compute objects weights
+        for(i=0;i<n;i++)
+        {
+            if(c[dat[i].clusterID].nbData == 1)
+            {
+                ow[i] = 1.0;
+            }
+            else
+            {
+                ow[i] = (w[i] / sumWeights[dat[i].clusterID]) * (double) c[dat[i].clusterID].nbData;
+            }
+        }
+    }
+}
+
+static void CLUSTER_computeObjectWeightsInClusterViaDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double *ow)
+{
+    if(dat == NULL || n < 2 || p < 1 || c == NULL || k < 2 || indK < 0 || ow == NULL)
+    {
+        ERR("Bad parameter");
+    }
+    else
+    {
+        // Based on the nearest centroid different of the point one
+
+        uint64_t i, j;
+        uint64_t l;
+        double w[n]; // Tmp weights
+        double sumWeights = 0.0; // Sum of weights in cluster k
+
+        // Compute tmp weights
+        for(i=0;i<n;i++)
+        {
+            //WRN("For dat%ld belonging to c%d(nbData = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
+            if(dat[i].clusterID == indK)
+            {
+                // Initialize tmp weights
+                w[i] = 1e20;
+
+                for(l=0;l<k;l++)
+                {
+                    if(l != indK)
+                    {
+                        // Calculate squared Euclidean distance
+                        double dist = CLUSTER_computeSquaredDistancePointToCluster(&(dat[i]), p, &(c[l]), DISTANCE_EUCLIDEAN);
+
+                        //SAY("w[%ld] = %lf, dist = %lf for c%d (k = %d, indK = %d)", i, w[i], dist, l, k, indK);
+                        if(dist < w[i])
+                        {
+                            w[i] = dist;
+                        }
+                    }
+                } 
+
+                // Compute ratio distance with its centroid / distance with the nearest other centroid 
+                //WRN("w[%ld] = %lf", i, w[i]);
+                w[i] = 1.0 / w[i];
+                //INF("w[%ld] = %lf", i, w[i]);
+                sumWeights += w[i];
+            }
+        }
+
+        // Compute objects weights
+        for(i=0;i<n;i++)
+        {
+            if(dat[i].clusterID == indK)
+            {
+                if(c[dat[i].clusterID].nbData == 1)
+                {
+                    ow[i] = 1.0;
+                }
+                else
+                {
+                    ow[i] = (w[i] / sumWeights) * (double) c[dat[i].clusterID].nbData;
+                }
+
+                //WRN("ow[%ld] = %lf", i, ow[i]);
             }
         }
     }
