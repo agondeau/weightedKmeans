@@ -23,8 +23,10 @@
  */
 typedef struct _cluster
 {
+    uint32_t ind; // Cluster index
     double *centroid; // Centroid dimensions 
     uint64_t nbData; // Number of data in cluster
+    void *head; // Pointer to the head of cluster chain list
 } cluster;
 
 /** @brief Contains data informations.
@@ -32,8 +34,12 @@ typedef struct _cluster
  */
 typedef struct _data
 {
+    uint64_t ind; // Data index
     double *dim; // Data dimensions
     uint32_t clusterID; // Cluster ID of data
+    double ow; // Data weight
+    void *pred; // Pointer to datum predecessor in cluster chain list
+    void *succ; // Pointer to datum successor in cluster chain list
 } data;
 
 /** @brief Computes the classical version of k-means  
@@ -88,5 +94,7 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
 void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile);
 
 void CLUSTER_computeWeightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile);
+
+void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile);
 
 #endif /* _CLUSTER_H */

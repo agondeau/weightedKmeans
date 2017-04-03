@@ -234,7 +234,10 @@ data* readDataFile(const char *fileName, uint64_t *n, uint64_t *p)
             {
                 for(i=0;i<(*n);i++)
                 {
+                    dat[i].ind = i;
                     dat[i].clusterID = -1;
+                    dat[i].pred = NULL;
+                    dat[i].succ = NULL;
                     dat[i].dim = malloc((*p)*sizeof(double));
                     if(dat[i].dim != NULL)
                     {
