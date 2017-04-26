@@ -64,6 +64,30 @@ void CLUSTER_computeKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
 void CLUSTER_computeKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
 void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
 
+/** @brief Computes the features weighted  
+ *         version of k-means algorithm.
+ *
+ *  This will compute the weighted (features/objects) 
+ *  version of k-means algorithm from 2 clusters to 
+ *  kmax clusters and with nbRep random starts for 
+ *  each numbers of clusters.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param kmax The maximum number of clusters 
+ *               that will be computed.
+ *  @param nbRep The number of random starts for 
+ *               each number of clusters.
+ *  @param internalFeatureWeights The boolean that 
+ *               specified if the features weights come 
+ *               from internal computation or from a file.
+ *  @param featureWeightsFile The string to the features 
+ *               weights file.
+ *  @return Void.
+ */
+void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile);
+
 /** @brief Computes the weighted (features/objects) 
  *         version of k-means algorithm.
  *

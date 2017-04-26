@@ -34,7 +34,8 @@
 #define FILENAME_SIZE_MAX 256
 
 /* -- Global variables -- */
-bool weightedKmeans = false; // Computes weighted k-means or not
+bool featuresWeightedKmeans = false; // Computes features weighted k-means or not
+bool objectsWeightedKmeans = false; // Computes objects weighted k-means or not
 bool internalFeatureWeights = false; // The boolean that specified if the features weights come from internal computation or from a file.
 bool internalObjectWeights = false; // The boolean that specified if the objects weights come from internal computation or from a file.
 
@@ -133,8 +134,8 @@ int main(int argc, char *argv[]) {
             }
             else if(!strcmp("-o", argv[i]))
             {
-                // Set boolean variable for weighted k-means
-                weightedKmeans = true;
+                // Set boolean variable for objects weighted k-means
+                objectsWeightedKmeans = true;
 
                 if(argv[i+1] != NULL && strcmp("-i", argv[i+1]) && strcmp("-r", argv[i+1]) && strcmp("-k", argv[i+1]) && strcmp("-f", argv[i+1]))
                 {
@@ -149,8 +150,8 @@ int main(int argc, char *argv[]) {
             }
             else if(!strcmp("-f", argv[i]))
             {
-                // Set boolean variable for weighted k-means
-                weightedKmeans = true;
+                // Set boolean variable for features weighted k-means
+                featuresWeightedKmeans = true;
 
                 if(argv[i+1] != NULL && strcmp("-i", argv[i+1]) && strcmp("-r", argv[i+1]) && strcmp("-k", argv[i+1]) && strcmp("-o", argv[i+1]))
                 {
@@ -181,14 +182,22 @@ int main(int argc, char *argv[]) {
 
         if(dat != NULL)
         {
-            if(weightedKmeans)
+            // Features weighted k-means
+            if(featuresWeightedKmeans && !objectsWeightedKmeans)
             {
-                INF("Weighted k-means");
+                INF("Features weighted k-means");
+                CLUSTER_computeFeaturesWeightedKmeans(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName);
+            }
+            // Objects weighted k-means or objects and features weighted k-means
+            else if((!featuresWeightedKmeans && objectsWeightedKmeans) || (featuresWeightedKmeans && objectsWeightedKmeans))
+            {
+                INF("Objects (and features) weighted k-means");
                 //CLUSTER_computeWeightedKmeans(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName);
                 //CLUSTER_computeWeightedKmeans2(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName);
                 CLUSTER_computeWeightedKmeans3(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName); // ow[n]
                 //CLUSTER_computeWeightedKmeans4(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName); // ow[n][k]
             }
+            // Classical k-means
             else
             {
                 INF("Classic k-means");

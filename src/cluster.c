@@ -104,7 +104,7 @@ static void CLUSTER_randomCentroids(data *dat, uint64_t n, uint64_t p, cluster *
  *  @param k The number of clusters. 
  *  @return Void.
  */
-static double CLUSTER_assignDataToCentroids7(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+static double CLUSTER_assignDataToCentroids7(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool *conv);
 
 static void CLUSTER_assignDataToCentroids11(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool *conv);
 
@@ -183,8 +183,25 @@ static void CLUSTER_removePointFromCluster(data *dat, cluster *c);
  */
 static double CLUSTER_kmeans4(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c);
 
-/** @brief Computes the classical version of k-means  
- *         algorithm for k clusters.
+/** @brief Computes the features 
+ * version of k-means algorithm for k clusters.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param k The number of clusters. 
+ *  @param c The pointer to the clusters.
+ *  @param internalFeatureWeights The boolean that 
+ *           specified if the features weights come 
+ *           from internal computation or from a file.
+ *  @param fw The features weights.
+ *  @return The sum of squared errors for the clustering.
+ */
+static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p]);
+
+
+/** @brief Computes the objects (and features) 
+ * version of k-means algorithm for k clusters.
  *
  *  @param dat The pointer to data.
  *  @param n The number of the data.
@@ -1300,6 +1317,164 @@ void CLUSTER_computeWeightedKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t 
     CLUSTER_FreeMatDistPointToPoint(n, &dist); 
 }
 
+void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile)
+{
+    uint32_t i, k, o;
+    uint64_t j;
+    double statSil[kmax], statVRC2[kmax], statCH[kmax];
+    uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
+    //double ow[n];
+    double fw[kmax][p]; // Features weights
+
+    // Initialize statistics
+    for(k=kmax;k>=K_MIN;k--)
+    {
+        statSil[k] = -1.0;
+        statVRC2[k] = 0.0;
+        statCH[k] = 0.0;
+    }
+
+    // Compute total sum of squares 
+    double TSS = CLUSTER_computeTSS(dat, n, p);
+
+    // Calculate the matrix of distance between points
+    double **dist;
+    CLUSTER_ComputeMatDistPointToPoint2(dat, n, p, &dist);
+
+    // Initialize weights to 1.0
+    CLUSTER_initFeatureWeights(kmax, p, fw);
+    if(internalFeatureWeights == false)
+    {
+        // Read object weights from file
+    }
+
+    //WRN("Iteration %d", i);
+    for(k=kmax;k>=K_MIN;k--) // From kMax to kMin
+    {
+        for(i=0;i<nbRep;i++) // Number of replicates
+        {
+            // Initialize weights
+            if(internalFeatureWeights == true)
+            {
+                // Initialize object weights to 1.0
+                CLUSTER_initFeatureWeights(k, p, fw);
+            }
+
+            cluster c[k];
+            // Allocate clusters dimension memory
+            CLUSTER_initClusters(p, c, k);
+
+            double SSE = CLUSTER_featuresWeightedKmeans(dat, n, p, k, c, internalFeatureWeights, fw);
+
+            // Compute silhouette statistic
+            double sil = CLUSTER_computeSilhouette4(dat, n, p, c, k, dist);
+
+            // Compute VRC statistic
+            double vrc2 = CLUSTER_computeVRC2(dat, c, SSE, n, p, k);
+
+            // Compute CH statistic
+            double ch = CLUSTER_computeCH(TSS, SSE, n, k);
+
+            // Check for null clusters
+            bool clustNull = false;
+            for(o=0;o<k;o++)
+            {
+                if(c[o].nbData == 0)
+                {
+                    clustNull = true;
+                }    
+            }
+
+            // Save best VRC statistic for each k
+            if((vrc2 > statVRC2[k] || i == 0) && clustNull == false)
+            {
+                statVRC2[k] = vrc2;
+                // Save data membership for each k (VRC)
+                for(j=0;j<n;j++)
+                {
+                    vrc2Grp[k][j] = dat[j].clusterID;
+                }
+            }
+
+            // Save best CH statistic for each k
+            if((ch > statCH[k] || i == 0) && clustNull == false)
+            {
+                statCH[k] = ch;
+                // Save data membership for each k (VRC)
+                for(j=0;j<n;j++)
+                {
+                    chGrp[k][j] = dat[j].clusterID;
+                }
+            }
+
+            if((sil > statSil[k] || i == 0) && clustNull == false)
+            {
+                statSil[k] = sil;
+                // Save data membership for each k (VRC)
+                for(j=0;j<n;j++)
+                {
+                    silGrp[k][j] = dat[j].clusterID;
+                }
+            }
+
+            // Free clusters dimension memory
+            CLUSTER_freeClusters(c, k);
+        }
+    }
+
+    // Retrieve the overall best statistics
+    double silMax = -1.0, vrc2Max = 0.0, chMax = 0.0;
+    uint32_t kSilMax, kVrc2Max, kChMax;
+    for(k=kmax;k>=K_MIN;k--)
+    {
+        if(statSil[k] > silMax)
+        {
+            silMax = statSil[k];
+            kSilMax = k;
+        }
+
+        if(statVRC2[k] > vrc2Max)
+        {
+            vrc2Max = statVRC2[k];
+            kVrc2Max = k;
+        }
+
+        if(statCH[k] > chMax)
+        {
+            chMax = statCH[k];
+            kChMax = k;
+        }
+    }
+
+    WRN("");
+    WRN("Final statistics -----------------------");
+    INF("Best silhouette : %lf for k = %d", silMax, kSilMax);
+    INF("Best VRC2 : %lf for k = %d", vrc2Max, kVrc2Max);
+    INF("Best CH : %lf for k = %d", chMax, kChMax);
+    WRN("");
+    WRN("Data membership for best indice scores -");
+    printf("dataId\t");
+    printf("Sil\t");
+    printf("VRC2\t");
+    printf("CH\t\n");
+    printf("\t%d-Gr\t", kSilMax);
+    printf("%d-Gr\t", kVrc2Max);
+    printf("%d-Gr\t", kChMax);
+    INF("");
+    for(j=0;j<n;j++)
+    {
+        printf("%ld\t", (j + 1));
+        printf("%d\t", silGrp[kSilMax][j]);
+        printf("%d\t", vrc2Grp[kVrc2Max][j]);
+        printf("%d\t", chGrp[kChMax][j]);
+        INF("");
+    }
+    WRN("----------------------------------------");
+
+    // Free allocated distances matrix
+    CLUSTER_FreeMatDistPointToPoint(n, &dist); 
+}
+
 static double CLUSTER_kmeans4(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c)
 {
     if(dat == NULL || n < 2 || p < 1 || k < 2)
@@ -1309,14 +1484,16 @@ static double CLUSTER_kmeans4(data *dat, uint64_t n, uint64_t p, uint32_t k, clu
     }
     else
     {
+        bool conv = false; // Has converged
+
         // Initialization
         CLUSTER_fakeDataAssignmentToCentroids(dat, n, c, k);
         CLUSTER_randomCentroids(dat, n, p, c, k);
-        CLUSTER_assignDataToCentroids7(dat, n, p, c, k);
+        CLUSTER_assignDataToCentroids7(dat, n, p, c, k, &conv);
         CLUSTER_computeCentroids(dat, n, p, c, k);
 
         uint8_t iter = 0;
-        bool conv = false; // Has converged
+        conv = false;
         while(iter < NB_ITER && conv == false)
         {
             // Data assignation
@@ -1330,22 +1507,69 @@ static double CLUSTER_kmeans4(data *dat, uint64_t n, uint64_t p, uint32_t k, clu
     }
 }
 
-static double CLUSTER_weightedKmeans5(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist)
+static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p])
 {
     if(dat == NULL || n < 2 || p < 1 || k < 2)
     {
-        ERR("k-means : bad parameter : dat = %p, n = %ld, p = %ld, k = %d", dat, n, p, k);
+        ERR("Bad parameter : dat = %p, n = %ld, p = %ld, k = %d", dat, n, p, k);
         return -1.0;
     }
     else
     {
+        eMethodType feaWeiMed = METHOD_DISPERSION;
+        bool conv = false; // Has converged
+
+        // Initialization
+        CLUSTER_fakeDataAssignmentToCentroids(dat, n, c, k);
+        CLUSTER_randomCentroids(dat, n, p, c, k);
+        CLUSTER_assignDataToCentroids7(dat, n, p, c, k, &conv);
+        CLUSTER_computeCentroids(dat, n, p, c, k);
+
+        if(internalFeatureWeights == true)
+        {
+            CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+        }
+
+        uint8_t iter = 0;
+        conv = false; // Has converged
+        while(iter < NB_ITER && conv == false)
+        {
+            // Data assignation
+            CLUSTER_assignDataToCentroids7(dat, n, p, c, k, &conv); 
+            
+            // Update centroids
+            CLUSTER_computeCentroids(dat, n, p, c, k);
+
+            // Update feature weights
+            if(internalFeatureWeights == true)
+            {
+                CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+            }
+
+            iter++;
+        }
+
+        return CLUSTER_computeSSE(dat, n, p, c, k); 
+    }
+}
+
+static double CLUSTER_weightedKmeans5(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist)
+{
+    if(dat == NULL || n < 2 || p < 1 || k < 2)
+    {
+        ERR("Bad parameter : dat = %p, n = %ld, p = %ld, k = %d", dat, n, p, k);
+        return -1.0;
+    }
+    else
+    {
+        bool conv = false; // Has converged
         // Initialization
         eMethodType objWeiMed = /*METHOD_MEDIAN*/METHOD_SILHOUETTE;
         eMethodType feaWeiMed = METHOD_DISPERSION;
         CLUSTER_fakeDataAssignmentToCentroids(dat, n, c, k);
         CLUSTER_randomCentroids(dat, n, p, c, k);
         //CLUSTER_assignWeightedDataToCentroids12(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow);
-        CLUSTER_assignDataToCentroids7(dat, n, p, c, k);
+        CLUSTER_assignDataToCentroids7(dat, n, p, c, k, &conv);
         CLUSTER_computeCentroids(dat, n, p, c, k);
         if(internalFeatureWeights == true)
         {
@@ -1358,7 +1582,7 @@ static double CLUSTER_weightedKmeans5(data *dat, uint64_t n, uint64_t p, uint32_
 
         uint8_t iter = 0;
         double SSEref = 1.0e20, SSE;
-        bool conv = false; // Has converged
+        conv = false;
         while(iter < NB_ITER && conv == false)
         {
             // Assign data to the nearest centroid
@@ -1410,13 +1634,14 @@ static double CLUSTER_weightedKmeans6(data *dat, uint64_t n, uint64_t p, uint32_
     }
     else
     {
+        bool conv = false; // Has converged
         // Initialization
         eMethodType objWeiMed = /*METHOD_MEDIAN*/METHOD_SILHOUETTE;
         eMethodType feaWeiMed = METHOD_DISPERSION;
         CLUSTER_fakeDataAssignmentToCentroids(dat, n, c, k);
         CLUSTER_randomCentroids(dat, n, p, c, k);
         //CLUSTER_assignWeightedDataToCentroids12(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow);
-        CLUSTER_assignDataToCentroids7(dat, n, p, c, k);
+        CLUSTER_assignDataToCentroids7(dat, n, p, c, k, &conv);
         CLUSTER_computeCentroids(dat, n, p, c, k);
         if(internalFeatureWeights == true)
         {
@@ -1429,7 +1654,7 @@ static double CLUSTER_weightedKmeans6(data *dat, uint64_t n, uint64_t p, uint32_
 
         uint8_t iter = 0;
         double SSEref = 1.0e20, SSE;
-        bool conv = false; // Has converged
+        conv = false;
         while(iter < NB_ITER && conv == false)
         {
             // Assign data to the nearest centroid
@@ -1469,6 +1694,7 @@ static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_
     if(!(dat == NULL || n < 2 || p < 1 || k < 2))
     {
         double wss[k];
+        bool conv = false; // Has converged
 
         // Initialization
         eMethodType objWeiMed = METHOD_MEDIAN;
@@ -1498,7 +1724,7 @@ static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_
         }*/
 
         CLUSTER_randomCentroids(dat, n, p, c, k);
-        CLUSTER_assignDataToCentroids7(dat, n, p, c, k);
+        CLUSTER_assignDataToCentroids7(dat, n, p, c, k, &conv);
         CLUSTER_computeCentroids(dat, n, p, c, k);
         CLUSTER_computeNkWeightedWSS(dat, n, p, c, k, wss, fw);
 
@@ -1519,7 +1745,7 @@ static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_
         //WRN("BEF = sumWSS = %lf", sumWSS);*/
 
         uint8_t iter = 0;
-        bool conv = false; // Has converged
+        conv = false; // Has converged
         while(iter < NB_ITER && conv == false)
         {
             // Data assignation
@@ -1556,12 +1782,14 @@ static double CLUSTER_weightedKmeans8(data *dat, uint64_t n, uint64_t p, uint32_
     }
     else
     {
+        bool conv = false; // Has converged
+
         // Initialization
         eMethodType objWeiMed = METHOD_MEDIAN/*METHOD_SILHOUETTE*/;
         eMethodType feaWeiMed = METHOD_DISPERSION;
         CLUSTER_fakeDataAssignmentToCentroids(dat, n, c, k);
         CLUSTER_randomCentroids(dat, n, p, c, k);
-        CLUSTER_assignDataToCentroids7(dat, n, p, c, k);
+        CLUSTER_assignDataToCentroids7(dat, n, p, c, k, &conv);
         CLUSTER_computeCentroids(dat, n, p, c, k);
 
         if(internalFeatureWeights == true)
@@ -1574,7 +1802,7 @@ static double CLUSTER_weightedKmeans8(data *dat, uint64_t n, uint64_t p, uint32_
         }
 
         uint8_t iter = 0;
-        bool conv = false; // Has converged
+        conv = false; // Has converged
         while(iter < NB_ITER && conv == false)
         {
             /*uint64_t y;
@@ -1714,11 +1942,14 @@ static void CLUSTER_randomCentroids(data *dat, uint64_t n, uint64_t p, cluster *
     //WRN("-------------------------------");
 }
 
-static double CLUSTER_assignDataToCentroids7(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
+static double CLUSTER_assignDataToCentroids7(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool *conv)
 {
     uint64_t i;
     uint32_t l;
     double SSE = 0.0;
+
+    // Set convergence variable
+    *conv = true;
 
     for(i=0;i<n;i++)
     {
@@ -1756,6 +1987,9 @@ static double CLUSTER_assignDataToCentroids7(data *dat, uint64_t n, uint64_t p, 
             CLUSTER_removePointFromCluster(&(dat[i]), &(c[dat[i].clusterID]));
             // Add point to cluster minK
             CLUSTER_addPointToCluster(&(dat[i]), &(c[minK]));
+
+            // Reset convergence variable
+            *conv = false;
         }
 
         SSE += minDist;
@@ -2743,8 +2977,8 @@ static void CLUSTER_computeFeatureWeightsViaDispersion(data *dat, uint64_t n, ui
             }
             else
             {
-                // The sum of features weights as to be equal to the number of features
-                fw[l][j] = (1 / tmp[j]) * p;
+                // The sum of features weights as to be equal to unity 
+                fw[l][j] = pow((1 / tmp[j]), norm);
                 if(isinf(fw[l][j]))
                     fw[l][j] = 1.0; 
                 //SAY("Weight[%d][%ld] = %lf", l, j, fw[l][j]);
