@@ -165,10 +165,31 @@ static double CLUSTER_computeSquaredDistanceWeightedPointToCluster(data *dat, ui
  */
 static void CLUSTER_computeCentroids(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+/** @brief Transfer a point from a cluster to another.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The id of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the cluster.
+ *  @param k The id of the cluster. 
+ *  @return Void.
+ */
 static void CLUSTER_transferPointToCluster2(data *dat, uint64_t indN, uint64_t p, cluster *c, uint32_t indK);
 
-
+/** @brief Add a point to a cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param c The pointer to the cluster.
+ *  @return Void.
+ */
 static void CLUSTER_addPointToCluster(data *dat, cluster *c);
+
+/** @brief Remove a point from a cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param c The pointer to the cluster.
+ *  @return Void.
+ */
 static void CLUSTER_removePointFromCluster(data *dat, cluster *c);
 
 /** @brief Computes the classical version of k-means  
@@ -198,7 +219,6 @@ static double CLUSTER_kmeans4(data *dat, uint64_t n, uint64_t p, uint32_t k, clu
  *  @return The sum of squared errors for the clustering.
  */
 static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p]);
-
 
 /** @brief Computes the objects (and features) 
  * version of k-means algorithm for k clusters.
@@ -367,7 +387,6 @@ static void CLUSTER_computeObjectWeights4(data *dat, uint64_t n, uint64_t p, clu
  *  @param m The method for objects weights calculation.
  *  @return Void.
  */
-
 static void CLUSTER_computeObjectWeightsInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, eMethodType m, double **dist);
 
 /** @brief Computes objects weights via silhouette
