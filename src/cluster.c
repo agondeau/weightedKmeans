@@ -334,6 +334,21 @@ static void CLUSTER_initFeatureWeights(uint32_t k, uint64_t p, double fw[k][p]);
  */
 static void CLUSTER_computeFeatureWeights(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], eMethodType m);
 
+/** @brief Computes features weights in a specific 
+ *         cluster via different methods.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param indK The id of the cluster.
+ *  @param fw The features weights.
+ *  @param m The method for objects weights calculation.
+ *  @return Void.
+ */
+static void CLUSTER_computeFeatureWeightsInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double fw[k][p], eMethodType m);
+
 /** @brief Computes features weights via dispersion
  *         score.
  *
@@ -347,6 +362,20 @@ static void CLUSTER_computeFeatureWeights(data *dat, uint64_t n, uint64_t p, clu
  *  @return Void.
  */
 static void CLUSTER_computeFeatureWeightsViaDispersion(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double fw[k][p], uint8_t norm);
+
+/** @brief Computes features weights in a specific 
+ *         cluster via dispersion score.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param k The number of clusters. 
+ *  @param c The pointer to the clusters.
+ *  @param fw The features weights.
+ *  @param norm The norm from Lp-spaces.
+ *  @return Void.
+ */
+static void CLUSTER_computeFeatureWeightsInClusterViaDispersion(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double fw[k][p], uint8_t norm);
 
 /** @brief Computes feature dispersion.
  *
@@ -2324,18 +2353,18 @@ static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint6
 
         CLUSTER_transferPointToCluster2(dat, i, p, c, tmpClust); // Transfer datum i to tmp cluster
 
-        // Update weights in former datum i cluster 
+        // Update objects weights in former datum i cluster 
         if(internalObjectWeights == true)
         {
             // Internal computation of object weights
             CLUSTER_computeObjectWeightsInCluster(dat, n, p, c, k, curClust, objWeiMet, dist);
         }
 
-        // Update feature weights in cluster l
+        //  Update features weights in former datum i cluster
         if(internalFeatureWeights == true)
         {
             // Internal computation of feature weights
-            CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+            CLUSTER_computeFeatureWeightsInCluster(dat, n, p, c, k, curClust, fw, feaWeiMed);
         }
 
         /*double sum = 0.0;
@@ -2392,7 +2421,7 @@ static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint6
 
                 // Compute WSS of cluster l with datum i
                 CLUSTER_transferPointToCluster2(dat, i, p, c, l); // Transfer datum i to tmp cluster
-                // Update weights in former datum i cluster 
+                // Update objects weights in former datum i cluster 
                 if(internalObjectWeights == true)
                 {
                     // Internal computation of object weights
@@ -2404,7 +2433,7 @@ static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint6
                 if(internalFeatureWeights == true)
                 {
                     // Internal computation of feature weights
-                    CLUSTER_computeFeatureWeights(dat, n, p, c, k, fw, feaWeiMed);
+                    CLUSTER_computeFeatureWeightsInCluster(dat, n, p, c, k, l, fw, feaWeiMed);
                 }
 
                 /*data *pti = (data *)c[l].head;
@@ -2945,6 +2974,80 @@ static void CLUSTER_computeFeatureWeights(data *dat, uint64_t n, uint64_t p, clu
                 WRN("Not implemented yet");
             }
             break;
+    }
+}
+
+static void CLUSTER_computeFeatureWeightsInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double fw[k][p], eMethodType m)
+{
+    switch(m)
+    {
+        default:
+        case METHOD_DISPERSION :
+            {
+                CLUSTER_computeFeatureWeightsInClusterViaDispersion(dat, n, p, c, k, indK, fw, 2); // Using L2-norm
+            }
+            break;
+        case METHOD_OTHER:
+            {
+                WRN("Not implemented yet");
+            }
+            break;
+    }
+}
+
+static void CLUSTER_computeFeatureWeightsInClusterViaDispersion(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double fw[k][p], uint8_t norm)
+{
+    uint64_t i, j, m;
+    double disp[p]; // Dispersion per feature
+    uint64_t nbdataClust = c[indK].nbData;
+
+    // Initialization
+    for(j=0;j<p;j++)
+    {
+        disp[j] = 0.0;
+    }
+
+    // Compute dispersion
+    data *pti = (data *)c[indK].head;
+    for(i=0;i<nbdataClust;i++)
+    {
+        for(j=0;j<p;j++)
+        {
+            disp[j] += CLUSTER_computeFeatureDispersion(pti, j, &(c[indK]), norm);
+        }
+
+        // Update pti
+        pti = (data *)pti->succ;
+    }
+
+    // Compute weights
+    double tmp[p];
+    for(j=0;j<p;j++)
+    {
+        tmp[j] = 0.0;
+    }
+
+    for(j=0;j<p;j++)
+    {
+        for(m=0;m<p;m++)
+        {
+            tmp[j] += pow((disp[j] / disp[m]),(1 / (norm - 1)));
+            if(isnan(tmp[j]))
+                tmp[j] = 0.0; 
+        }
+
+        if(c[indK].nbData == 1)
+        {
+            fw[indK][j] = 1.0;
+        }
+        else
+        {
+            // The sum of features weights as to be equal to unity 
+            fw[indK][j] = pow((1 / tmp[j]), norm);
+            if(isinf(fw[indK][j]))
+                fw[indK][j] = 1.0; 
+            //SAY("Weight[%d][%ld] = %lf", l, j, fw[l][j]);
+        }
     }
 }
 
