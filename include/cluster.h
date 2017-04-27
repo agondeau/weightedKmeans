@@ -26,7 +26,8 @@ typedef struct _cluster
     uint32_t ind; // Cluster index
     double *centroid; // Centroid dimensions 
     uint64_t nbData; // Number of data in cluster
-    void *head; // Pointer to the head of cluster chain list
+    double *fw; // Features weights in cluster
+    void *head; // Pointer to the head of cluster chained list
 } cluster;
 
 /** @brief Contains data informations.
@@ -38,8 +39,8 @@ typedef struct _data
     double *dim; // Data dimensions
     uint32_t clusterID; // Cluster ID of data
     double ow; // Data weight
-    void *pred; // Pointer to datum predecessor in cluster chain list
-    void *succ; // Pointer to datum successor in cluster chain list
+    void *pred; // Pointer to datum predecessor in cluster chained list
+    void *succ; // Pointer to datum successor in cluster chained list
 } data;
 
 /** @brief Computes the classical version of k-means  
