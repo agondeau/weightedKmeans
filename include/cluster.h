@@ -43,6 +43,22 @@ typedef struct _data
     void *succ; // Pointer to datum successor in cluster chained list
 } data;
 
+/** @brief Contains the different weights calculation methods.
+ *
+ */
+typedef enum _eMethodType 
+{
+    METHOD_SILHOUETTE = 0,
+    METHOD_SILHOUETTE_NK,
+    METHOD_MEDIAN,
+    METHOD_MEDIAN_NK,
+    METHOD_MIN_DIST_CENTROID,
+    METHOD_MIN_DIST_CENTROID_NK,
+    METHOD_SUM_DIST_CENTROID,
+    METHOD_DISPERSION,
+    METHOD_OTHER
+} eMethodType; 
+
 /** @brief Computes the classical version of k-means  
  *         algorithm.
  *  
@@ -85,9 +101,11 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
  *               from internal computation or from a file.
  *  @param featureWeightsFile The string to the features 
  *               weights file.
+ *  @param featureWeightsMethod The features calculation 
+ *               methods.
  *  @return Void.
  */
-void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile);
+void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod);
 
 /** @brief Computes the weighted (features/objects) 
  *         version of k-means algorithm.
@@ -120,6 +138,6 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
 
 void CLUSTER_computeWeightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile);
 
-void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile);
+void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod, bool internalObjectWeights, const char *objectWeightsFile, eMethodType objectWeightsMethod);
 
 #endif /* _CLUSTER_H */

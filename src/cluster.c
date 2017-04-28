@@ -44,19 +44,6 @@ typedef enum _eDistanceType
     DISTANCE_OTHER
 } eDistanceType;
 
-/** @brief Contains the different weights calculation types.
- *
- */
-typedef enum _eMethodType 
-{
-    METHOD_SILHOUETTE = 0,
-    METHOD_MEDIAN,
-    METHOD_MIN_DIST_CENTROID,
-    METHOD_SUM_DIST_CENTROID,
-    METHOD_DISPERSION,
-    METHOD_OTHER
-} eMethodType; 
-
 /** @brief Proceeds to a fake assigenment of data to  
  *         the different clusters.
  *
@@ -225,11 +212,13 @@ static double CLUSTER_kmeans4(data *dat, uint64_t n, uint64_t p, uint32_t k, clu
  *  @param k The number of clusters. 
  *  @param c The pointer to the clusters.
  *  @param internalFeatureWeights The boolean that 
- *           specified if the features weights come 
- *           from internal computation or from a file.
+ *         specified if the features weights come 
+ *         from internal computation or from a file.
+ *  @param featureWeightsMethod The feature weights calculation
+ *         method.         
  *  @return The sum of squared errors for the clustering.
  */
-static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights);
+static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, eMethodType featureWeightsMethod);
 
 /** @brief Computes the objects (and features) 
  * version of k-means algorithm for k clusters.
@@ -251,7 +240,7 @@ static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, 
  */
 static double CLUSTER_weightedKmeans6(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double *ow, double **dist);
 
-static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, bool internalObjectWeights, double **dist);
+static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, eMethodType featureWeightsMethod, bool internalObjectWeights, eMethodType objectWeightsMethod, double **dist);
 
 static double CLUSTER_weightedKmeans8(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, double fw[k][p], bool internalObjectWeights, double ow[n][k], double **dist);
 
@@ -442,7 +431,11 @@ static void CLUSTER_computeObjectWeightsInCluster(data *dat, uint64_t n, uint64_
  */
 static void CLUSTER_computeObjectWeightsViaSilhouette4(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double **dist);
 
+static void CLUSTER_computeObjectWeightsViaSilhouetteNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double **dist);
+
 static void CLUSTER_computeObjectWeightsInClusterViaSilhouette(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist);
+
+static void CLUSTER_computeObjectWeightsInClusterViaSilhouetteNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist);
 
 static double CLUSTER_computeObjectWeightInClusterViaSilhouette2(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist);
 
@@ -451,6 +444,7 @@ static double CLUSTER_computeObjectWeightInClusterViaMedian2(data *dat, uint64_t
 
 static void CLUSTER_computeObjectWeightsViaMinDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+static void CLUSTER_computeObjectWeightsViaMinDistCentroidNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
 static void CLUSTER_computeObjectWeightsViaSumDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
@@ -466,11 +460,15 @@ static void CLUSTER_computeObjectWeightsViaSumDistCentroid(data *dat, uint64_t n
  */
 static void CLUSTER_computeObjectWeightsViaMedian2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+static void CLUSTER_computeObjectWeightsViaMedianNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
 static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t indK);
 
-
+static void CLUSTER_computeObjectWeightsInClusterViaMedianNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t indK);
 
 static void CLUSTER_computeObjectWeightsInClusterViaMinDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK);
+
+static void CLUSTER_computeObjectWeightsInClusterViaMinDistCentroidNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK);
 
 static void CLUSTER_computeObjectWeightsInClusterViaSumDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK);
 
@@ -1036,7 +1034,7 @@ void CLUSTER_computeWeightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t 
     CLUSTER_FreeMatDistPointToPoint(n, &dist); 
 }
 
-void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile)
+void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod, bool internalObjectWeights, const char *objectWeightsFile, eMethodType objectWeightsMethod)
 {
     uint32_t i, k, o;
     uint64_t j;
@@ -1093,7 +1091,7 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
             // Allocate clusters dimension memory
             CLUSTER_initClusters(p, c, k);
 
-            double SSE = CLUSTER_weightedKmeans7(dat, n, p, k, c, internalFeatureWeights, internalObjectWeights, dist);
+            double SSE = CLUSTER_weightedKmeans7(dat, n, p, k, c, internalFeatureWeights, featureWeightsMethod, internalObjectWeights, objectWeightsMethod, dist);
             
             // Compute silhouette statistic
             double sil = CLUSTER_computeSilhouette4(dat, n, p, c, k, dist);
@@ -1375,7 +1373,7 @@ void CLUSTER_computeWeightedKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t 
     CLUSTER_FreeMatDistPointToPoint(n, &dist); 
 }
 
-void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile)
+void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod)
 {
     uint32_t i, k, o;
     uint64_t j;
@@ -1421,7 +1419,7 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
             // Allocate clusters dimension memory
             CLUSTER_initClusters(p, c, k);
 
-            double SSE = CLUSTER_featuresWeightedKmeans(dat, n, p, k, c, internalFeatureWeights);
+            double SSE = CLUSTER_featuresWeightedKmeans(dat, n, p, k, c, internalFeatureWeights, featureWeightsMethod);
 
             // Compute silhouette statistic
             double sil = CLUSTER_computeSilhouette4(dat, n, p, c, k, dist);
@@ -1564,7 +1562,7 @@ static double CLUSTER_kmeans4(data *dat, uint64_t n, uint64_t p, uint32_t k, clu
     }
 }
 
-static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights)
+static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, eMethodType featureWeightsMethod)
 {
     if(dat == NULL || n < 2 || p < 1 || k < 2)
     {
@@ -1573,7 +1571,7 @@ static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, 
     }
     else
     {
-        eMethodType feaWeiMed = METHOD_DISPERSION;
+        //eMethodType feaWeiMed = METHOD_DISPERSION;
         bool conv = false; // Has converged
 
         // Initialization
@@ -1584,7 +1582,7 @@ static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, 
 
         if(internalFeatureWeights == true)
         {
-            CLUSTER_computeFeatureWeights(dat, n, p, c, k, feaWeiMed);
+            CLUSTER_computeFeatureWeights(dat, n, p, c, k, featureWeightsMethod);
         }
 
         uint8_t iter = 0;
@@ -1600,7 +1598,7 @@ static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, 
             // Update feature weights
             if(internalFeatureWeights == true)
             {
-                CLUSTER_computeFeatureWeights(dat, n, p, c, k, feaWeiMed);
+                CLUSTER_computeFeatureWeights(dat, n, p, c, k, featureWeightsMethod);
             }
 
             iter++;
@@ -1746,7 +1744,7 @@ static double CLUSTER_weightedKmeans6(data *dat, uint64_t n, uint64_t p, uint32_
     }
 }
 
-static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, bool internalObjectWeights, double **dist)
+static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, eMethodType featureWeightsMethod, bool internalObjectWeights, eMethodType objectWeightsMethod, double **dist)
 {
     if(!(dat == NULL || n < 2 || p < 1 || k < 2))
     {
@@ -1754,17 +1752,22 @@ static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_
         bool conv = false; // Has converged
 
         // Initialization
-        eMethodType objWeiMed = METHOD_MEDIAN;
+        //eMethodType objWeiMed = METHOD_MEDIAN;
         //eMethodType objWeiMed = METHOD_SILHOUETTE;
         //eMethodType objWeiMed = METHOD_MIN_DIST_CENTROID;
         //eMethodType objWeiMed = METHOD_SUM_DIST_CENTROID;
-        eMethodType feaWeiMed = METHOD_DISPERSION;
+        //eMethodType feaWeiMed = METHOD_DISPERSION;
         CLUSTER_fakeDataAssignmentToCentroids(dat, n, c, k);
 
         /*uint32_t l;
+        uint64_t j;
         for(l=0;l<k;l++)
         {
             SAY("c%d nbData = %ld", l, c[l].nbData);
+            for(j=0;j<p;j++)
+            {
+                SAY("fw = %lf", c[l].fw[j]);
+            }
         }*/
         /*uint64_t i;
         for(i=0;i<n;i++)
@@ -1788,11 +1791,11 @@ static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_
         // Computes weights
         if(internalFeatureWeights == true)
         {
-            CLUSTER_computeFeatureWeights(dat, n, p, c, k, feaWeiMed);
+            CLUSTER_computeFeatureWeights(dat, n, p, c, k, featureWeightsMethod);
         }
         if(internalObjectWeights == true)
         {
-            CLUSTER_computeObjectWeights3(dat, n, p, c, k, objWeiMed, dist);
+            CLUSTER_computeObjectWeights3(dat, n, p, c, k, objectWeightsMethod, dist);
         }
 
         /*uint32_t l;
@@ -1809,7 +1812,7 @@ static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_
             //CLUSTER_assignWeightedDataToCentroids23(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist, &conv); // Based on WSS and 1/nk
             //CLUSTER_assignWeightedDataToCentroids24(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist, &conv); // Based on SSE and 1/nk
             //CLUSTER_assignWeightedDataToCentroids25(dat, n, p, c, k, internalFeatureWeights, fw, internalObjectWeights, ow, dist, &conv); // Based on SSE
-            CLUSTER_assignWeightedDataToCentroids27(dat, n, p, c, k, internalFeatureWeights, feaWeiMed, internalObjectWeights, objWeiMed, dist, wss, &conv); // Based on sum of WSS and 1/nk
+            CLUSTER_assignWeightedDataToCentroids27(dat, n, p, c, k, internalFeatureWeights, featureWeightsMethod, internalObjectWeights, objectWeightsMethod, dist, wss, &conv); // Based on sum of WSS and 1/nk
 
             iter++;
         }
@@ -2423,7 +2426,6 @@ static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint6
         //WRN("For dat%ld from clust%d (nbData %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
         // Save current cluster of point i
         uint32_t curClust = dat[i].clusterID;
-        double owTmp = dat[i].ow;
 
         // Compute WSS of datum i cluster without datum i
         uint32_t tmpClust = (curClust + 1 >= k) ? 0 : curClust + 1; // Define a tmp cluster
@@ -2763,9 +2765,6 @@ static void CLUSTER_transferPointToCluster2(data *dat, uint64_t indN, uint64_t p
     uint64_t j;
 
     uint32_t prevClust = dat[indN].clusterID; // Retreive datum previous cluster
-    /*c[prevClust].nbData--; // Decrease previous cluster data number
-      dat[indN].clusterID = indK; // Assign data to cluster
-      c[indK].nbData++; // Increase new cluster data number*/
 
     // Remove point from former cluster
     CLUSTER_removePointFromCluster(&(dat[indN]), &(c[prevClust]));
@@ -3244,14 +3243,29 @@ static void CLUSTER_computeObjectWeights3(data *dat, uint64_t n, uint64_t p, clu
                 CLUSTER_computeObjectWeightsViaSilhouette4(dat, n, p, c, k, dist);
             }
             break;
+        case METHOD_SILHOUETTE_NK :
+            {
+                CLUSTER_computeObjectWeightsViaSilhouetteNK(dat, n, p, c, k, dist);
+            }
+            break;
         case METHOD_MEDIAN :
             {
                 CLUSTER_computeObjectWeightsViaMedian2(dat, n, p, c, k);
             }
             break;
+        case METHOD_MEDIAN_NK :
+            {
+                CLUSTER_computeObjectWeightsViaMedianNK(dat, n, p, c, k);
+            }
+            break;
         case METHOD_MIN_DIST_CENTROID :
             {
                 CLUSTER_computeObjectWeightsViaMinDistCentroid(dat, n, p, c, k);
+            }
+            break;
+        case METHOD_MIN_DIST_CENTROID_NK :
+            {
+                CLUSTER_computeObjectWeightsViaMinDistCentroidNK(dat, n, p, c, k);
             }
             break;
         case METHOD_SUM_DIST_CENTROID :
@@ -3336,14 +3350,29 @@ static void CLUSTER_computeObjectWeightsInCluster(data *dat, uint64_t n, uint64_
                 CLUSTER_computeObjectWeightsInClusterViaSilhouette(dat, n, p, c, k, indK, dist);
             }
             break;
+        case METHOD_SILHOUETTE_NK :
+            {
+                CLUSTER_computeObjectWeightsInClusterViaSilhouetteNK(dat, n, p, c, k, indK, dist);
+            }
+            break;
         case METHOD_MEDIAN :
             {
                 CLUSTER_computeObjectWeightsInClusterViaMedian(dat, n, p, c, indK);
             }
             break;
+        case METHOD_MEDIAN_NK :
+            {
+                CLUSTER_computeObjectWeightsInClusterViaMedianNK(dat, n, p, c, indK);
+            }
+            break;
         case METHOD_MIN_DIST_CENTROID :
             {
                 CLUSTER_computeObjectWeightsInClusterViaMinDistCentroid(dat, n, p, c, k, indK);
+            }
+            break;
+        case METHOD_MIN_DIST_CENTROID_NK :
+            {
+                CLUSTER_computeObjectWeightsInClusterViaMinDistCentroidNK(dat, n, p, c, k, indK);
             }
             break;
         case METHOD_SUM_DIST_CENTROID :
@@ -3366,6 +3395,16 @@ static void CLUSTER_computeObjectWeightsViaSilhouette4(data *dat, uint64_t n, ui
     for(l=0;l<k;l++)
     {
         CLUSTER_computeObjectWeightsInClusterViaSilhouette(dat, n, p, c, k, l, dist);
+    }
+}
+
+static void CLUSTER_computeObjectWeightsViaSilhouetteNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double **dist)
+{
+    uint32_t l;
+
+    for(l=0;l<k;l++)
+    {
+        CLUSTER_computeObjectWeightsInClusterViaSilhouetteNK(dat, n, p, c, k, l, dist);
     }
 }
 
@@ -3446,9 +3485,80 @@ static void CLUSTER_computeObjectWeightsInClusterViaSilhouette(data *dat, uint64
         // Update pti
         pti = (data *)pti->succ;
     }
+}
+
+static void CLUSTER_computeObjectWeightsInClusterViaSilhouetteNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist)
+{
+    uint64_t nbdataClust = c[indK].nbData;
+    double a[nbdataClust], b[nbdataClust], s[nbdataClust], sk = 0.0, distCluster[k];
+    uint64_t i,j;
+    uint32_t l;
+
+    data *pti = (data *)c[indK].head;
+    for(i=0;i<nbdataClust;i++)
+    {
+        // Calculate a[i], the average dissimilarity of i with all other data within the same cluster
+        double d = 0.0;
+        data *ptj = (data *)c[indK].head;
+        for(j=0;j<nbdataClust;j++)
+        {
+            if(ptj->ind != pti->ind)
+            {
+                d += dist[pti->ind][ptj->ind];
+            }
+
+            // Update ptj
+            ptj = (data *)ptj->succ;
+        }
+
+        if((c[indK].nbData - 1) == 0)
+        {
+            a[i] = 0.0;
+        }
+        else
+        {
+            a[i] = d / (double)(c[indK].nbData - 1);
+        }
+
+        // Calculate b[i], the lowest average dissimilarity of i to any other cluster, of which i is not a member
+        for(l=0;l<k;l++)
+            distCluster[l] = 0.0;
+
+        for(j=0;j<n;j++)
+            if(dat[j].clusterID != indK)
+                distCluster[dat[j].clusterID] += (dist[pti->ind][j]/c[dat[j].clusterID].nbData);
+        b[i] = 1.0e20;
+        for(l=0;l<k;l++)
+            if(l != indK && distCluster[l] != 0 && distCluster[l] < b[i])
+                b[i] = distCluster[l];
+
+        // Calculate s[i]
+        if(c[indK].nbData == 1)
+        {
+            s[i] = 0;
+        }
+        else
+        {
+            s[i] = (b[i] != a[i]) ?  ((b[i] - a[i]) / fmax(a[i], b[i])) : 0.0;
+        }
+
+        //SAY("s[%ld] = %lf", i, s[i]);
+
+        if(s[i] < 0 || s[i] > 0)
+            s[i] = 1 - ((s[i]+1)/2); // Rescale silhouette to 0-1 
+        else // si = 0
+            s[i] = 0.5;
+
+        // Calculate sum of s[i] per cluster 
+        sk += s[i];
+
+        //SAY("ow[%ld] = %lf, cluster %d", i, ow[i], dat[i].clusterID);
+        // Update pti
+        pti = (data *)pti->succ;
+    }
 
     // Calculate object weights
-    /*pti = (data *)c[indK].head;
+    pti = (data *)c[indK].head;
     for(i=0;i<nbdataClust;i++)
     {
         pti->ow = (s[i] / sk) * (double) c[indK].nbData;
@@ -3458,11 +3568,11 @@ static void CLUSTER_computeObjectWeightsInClusterViaSilhouette(data *dat, uint64
             //ERR("ow = %lf, s = %lf, sk = %lf, cNbDat = %ld", ow[i], s[i], sk[dat[i].clusterID], c[dat[i].clusterID].nbData);
             pti->ow = 1.0;
         }
-    //}
-    //SAY("ow[%ld] = %lf", i, ow[i]);
-    // Update pti
-    pti = (data *)pti->succ;
-    }*/
+        //}
+        //SAY("ow[%ld] = %lf", i, ow[i]);
+        // Update pti
+        pti = (data *)pti->succ;
+    }
 }
 
 static double CLUSTER_computeObjectWeightInClusterViaSilhouette2(data *dat, uint64_t n, uint64_t indN, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist)
@@ -3550,6 +3660,16 @@ static void CLUSTER_computeObjectWeightsViaMedian2(data *dat, uint64_t n, uint64
     }
 }
 
+static void CLUSTER_computeObjectWeightsViaMedianNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
+{
+    uint32_t l;
+
+    for(l=0;l<k;l++)
+    {
+        CLUSTER_computeObjectWeightsInClusterViaMedianNK(dat, n, p, c, l);
+    }
+}
+
 static int cmpfunc(const void * a, const void * b)
 {
     return (*(double*)a > *(double*)b) ? 1 : (*(double*)a < *(double*)b) ? -1:0 ;
@@ -3562,27 +3682,6 @@ static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n
     double median[p]; // Median per cluster
     double w[nbDataClust]; // Tmp weights
     double sumWeights = 0.0; // Sum of weights in cluster k
-
-    /*for(j=0;j<p;j++)
-    {
-        data *pti = (data *)c[indK].head;
-        for(i=0;i<nbDataClust;i++)
-        {
-            WRN("dat[%ld].dim[%ld] = %lf",pti->ind , j, pti->dim[j]);
-
-            // Update pti
-            pti = (data *)pti->succ;
-        }
-
-        pti = (data *)c[indK].head;
-        for(i=0;i<nbDataClust;i++)
-        {
-            INF("dat[%ld].dim[%ld] = %lf",pti->ind , j, pti->dim[j]);
-
-            // Update pti
-            pti = (data *)pti->succ;
-        }
-    }*/
 
     for(j=0;j<p;j++)
     {
@@ -3647,9 +3746,73 @@ static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n
         // Update pti
         pti = (data *)pti->succ;
     }
+}
+
+static void CLUSTER_computeObjectWeightsInClusterViaMedianNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t indK)
+{
+    uint64_t i, j;
+    uint64_t nbDataClust = c[indK].nbData;
+    double median[p]; // Median per cluster
+    double w[nbDataClust]; // Tmp weights
+    double sumWeights = 0.0; // Sum of weights in cluster k
+
+    for(j=0;j<p;j++)
+    {
+        double dim[nbDataClust];
+        data *pti = (data *)c[indK].head;
+        for(i=0;i<nbDataClust;i++)
+        {
+            dim[i] = pti->dim[j];
+            //WRN("dim[%ld][%ld] = %lf",j , i, dim[i]);
+
+            // Update pti
+            pti = (data *)pti->succ;
+        }
+
+        // Sort dimension value in ascending way
+        qsort(dim, nbDataClust, sizeof(double), cmpfunc);
+
+        /*for(i=0;i<nbDataClust;i++)
+        {
+            INF("dim[%ld][%ld] = %lf",j , i, dim[i]);
+        }*/
+
+        // Compute the median
+        if(!(nbDataClust % 2))
+        {
+            median[j] = (dim[(nbDataClust / 2)] + dim[(nbDataClust / 2) - 1]) / 2;
+        }
+        else
+        {
+            median[j] = dim[((nbDataClust + 1) / 2) - 1];
+        }
+        //ERR("median[%ld] = %lf", j, median[j]);
+    }
+
+    // Compute tmp weights
+    data *pti = (data *)c[indK].head;
+    for(i=0;i<nbDataClust;i++)
+    {
+        // Initialize tmp weights
+        w[i] = 0.0;
+
+        for(j=0;j<p;j++)
+        {
+            //SAY("pti[%ld]->dim[%ld] = %lf, median[%ld] = %lf, abs = %lf", pti->ind, j, pti->dim[j], j, median[j], fabs((pti->dim[j] - median[j])));
+            w[i] += fabs(pti->dim[j] - median[j]); 
+        }
+        //SAY("w[%ld] = %lf", pti->ind, w[i]);
+
+        sumWeights += w[i];
+
+        //SAY("w[%ld] = %lf", i, w[i]);
+
+        // Update pti
+        pti = (data *)pti->succ;
+    }
 
     // Compute objects weights
-    /*pti = (data *)c[indK].head;
+    pti = (data *)c[indK].head;
     for(i=0;i<nbDataClust;i++)
     {
         if(nbDataClust == 1)
@@ -3663,7 +3826,7 @@ static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n
 
         // Update pti
         pti = (data *)pti->succ;
-    }*/
+    }
 }
 
 static void CLUSTER_computeObjectWeightsViaMinDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
@@ -3673,6 +3836,16 @@ static void CLUSTER_computeObjectWeightsViaMinDistCentroid(data *dat, uint64_t n
     for(l=0;l<k;l++)
     {
         CLUSTER_computeObjectWeightsInClusterViaMinDistCentroid(dat, n, p, c, k, l);
+    }
+}
+
+static void CLUSTER_computeObjectWeightsViaMinDistCentroidNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k)
+{
+    uint64_t l;
+
+    for(l=0;l<k;l++)
+    {
+        CLUSTER_computeObjectWeightsInClusterViaMinDistCentroidNK(dat, n, p, c, k, l);
     }
 }
 
@@ -3726,14 +3899,59 @@ static void CLUSTER_computeObjectWeightsInClusterViaMinDistCentroid(data *dat, u
         //INF("w[%ld] = %lf", pti->ind, w[i]);
         sumWeights += w[i];
 
-        /*if(nbDataClust == 1)
+        if(nbDataClust == 1)
         {
             pti->ow = 1.0;
         }
         else
         {
             pti->ow = w[i];
-        }*/
+        }
+
+        // Update pti
+        pti = (data *)pti->succ;
+    }
+}
+
+static void CLUSTER_computeObjectWeightsInClusterViaMinDistCentroidNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK)
+{
+    // Based on the nearest centroid different of the point one
+
+    uint64_t i;
+    uint64_t l;
+    uint64_t nbDataClust = c[indK].nbData;
+    double w[nbDataClust]; // Tmp weights
+    double sumWeights = 0.0; // Sum of weights in cluster k
+
+    // Compute tmp weights
+    data *pti = (data *)c[indK].head;
+    for(i=0;i<nbDataClust;i++)
+    {
+        //WRN("For dat%ld belonging to c%d(nbData = %ld)", i, dat[i].clusterID, c[dat[i].clusterID].nbData);
+
+        // Initialize tmp weights
+        w[i] = 1e20;
+
+        for(l=0;l<k;l++)
+        {
+            if(l != indK)
+            {
+                // Calculate squared Euclidean distance
+                double dist = CLUSTER_computeSquaredDistancePointToCluster(pti, p, &(c[l]), DISTANCE_EUCLIDEAN);
+
+                //SAY("w[%ld] = %lf, dist = %lf for c%d (k = %d, indK = %d)", pti->ind, w[i], dist, l, k, indK);
+                if(dist < w[i])
+                {
+                    w[i] = dist;
+                }
+            }
+        } 
+
+        // Compute ratio distance with its centroid / distance with the nearest other centroid 
+        //WRN("w[%ld] = %lf", pti->ind, w[i]);
+        w[i] = 1.0 / w[i];
+        //INF("w[%ld] = %lf", pti->ind, w[i]);
+        sumWeights += w[i];
 
         // Update pti
         pti = (data *)pti->succ;
@@ -3741,20 +3959,20 @@ static void CLUSTER_computeObjectWeightsInClusterViaMinDistCentroid(data *dat, u
 
     // Compute objects weights
     pti = (data *)c[indK].head;
-      for(i=0;i<nbDataClust;i++)
-      {
-      if(nbDataClust == 1)
-      {
-      pti->ow = 1.0;
-      }
-      else
-      {
-      pti->ow = (w[i] / sumWeights) * (double) nbDataClust;
-      }
+    for(i=0;i<nbDataClust;i++)
+    {
+        if(nbDataClust == 1)
+        {
+            pti->ow = 1.0;
+        }
+        else
+        {
+            pti->ow = (w[i] / sumWeights) * (double) nbDataClust;
+        }
 
-    //WRN("ow[%ld] = %lf", i, ow[i]);
-    // Update pti
-    pti = (data *)pti->succ;
+        //WRN("ow[%ld] = %lf", i, ow[i]);
+        // Update pti
+        pti = (data *)pti->succ;
     }
 }
 
@@ -3787,7 +4005,7 @@ static void CLUSTER_computeObjectWeightsInClusterViaSumDistCentroid(data *dat, u
     double sumWei = 0.0;
     for(i=0;i<nbDataClust;i++)
     {
-        pti->ow = (1 / sumDist) / (double) nbDataClust;
+        pti->ow = (1 / sumDist);
 
         sumWei += pti->ow;
 
