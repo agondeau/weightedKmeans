@@ -89,26 +89,62 @@ static void CLUSTER_randomCentroids(data *dat, uint64_t n, uint64_t p, cluster *
  *  @param p The number of data dimensions.
  *  @param c The pointer to the clusters.
  *  @param k The number of clusters. 
+ *  @param conv The pointer to a boolean specifying if the algorithm
+ *              has converged. 
  *  @return Void.
  */
 static double CLUSTER_assignDataToCentroids7(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool *conv);
 
+/** @brief Assigns and transfer data to the nearest cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters. 
+ *  @param conv The pointer to a boolean specifying if the algorithm
+ *              has converged.
+ *  @return Void.
+ */
 static void CLUSTER_assignDataToCentroids11(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool *conv);
 
-/** @brief Assigns weighted data to the nearest centroid.
+/** @brief Assigns weighted data to the nearest centroid
+ *         for features weighted algorithm.
  *
  *  @param dat The pointer to data.
  *  @param n The number of the data.
  *  @param p The number of data dimensions.
  *  @param c The pointer to the clusters.
  *  @param k The number of clusters.
- *  @param fw The features weights.
- *  @param ow The pointer to the objects weights.
+ *  @param conv The pointer to a boolean specifying if the algorithm
+ *              has converged.
  *  @return Void.
  */
 static void CLUSTER_assignWeightedDataToCentroids(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool *conv);
 
-static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, eMethodType feaWeiMed, bool internalObjectWeights, eMethodType objWeiMet, double **dist, double wss[k], bool *conv);
+/** @brief Assigns weighted data to the nearest centroid
+ *         for objects (and features) weighted algorithm.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param internalFeatureWeights The boolean specifying if 
+ *              the features weights are computed internally.
+ *  @param  feaWeiMet The method used to computed the features
+ *                    weights internally.
+ *  @param internalObjectsWeights The boolean specifying if 
+ *              the objects weights are computed internally.
+ *  @param  objWeiMet The method used to computed the objects
+ *                    weights internally.
+ *  @param dist The double pointer to the distance matrix point to point.
+ *  @param wss The array of wss per cluster.
+ *  @param conv The pointer to a boolean specifying if the algorithm
+ *              has converged.
+ *  @return Void.
+ */
+static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, eMethodType feaWeiMet, bool internalObjectWeights, eMethodType objWeiMet, double **dist, double wss[k], bool *conv);
 
 /** @brief Computes the squared distance between a point and a cluster.
  *
@@ -120,6 +156,15 @@ static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint6
  */
 static double CLUSTER_computeSquaredDistancePointToCluster(data *dat, uint64_t p, cluster *c, eDistanceType d);
 
+/** @brief Computes the squared and features weighted
+ *         distance between a point and a cluster.
+ *
+ *  @param dat The pointer to the datum.
+ *  @param p The number of datum dimensions.
+ *  @param c The pointer to the cluster.
+ *  @param d The type of distance calculation. 
+ *  @return the computed distance between the point and the cluster.
+ */
 static double CLUSTER_computeSquaredFWDistancePointToCluster(data *dat, uint64_t p, cluster *c, eDistanceType d);
 
 /** @brief Computes the squared distance between two clusters.
@@ -222,14 +267,15 @@ static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, 
  *  @param p The number of data dimensions.
  *  @param k The number of clusters. 
  *  @param c The pointer to the clusters.
- *  @param internalFeatureWeights The boolean that 
- *           specified if the features weights come 
- *           from internal computation or from a file.
- *  @param fw The features weights.
- *  @param internalObjectWeights The boolean that 
- *           specified if the objects weights come 
- *           from internal computation or from a file.
- *  @param ow The pointer to the objects weights.
+ *  @param internalFeatureWeights The boolean specifying if 
+ *              the features weights are computed internally.
+ *  @param  feaWeiMet The method used to computed the features
+ *                    weights internally.
+ *  @param internalObjectsWeights The boolean specifying if 
+ *              the objects weights are computed internally.
+ *  @param  objWeiMet The method used to computed the objects
+ *                    weights internally.
+ *  @param dist The double pointer to the distance matrix point to point.
  *  @return The sum of squared errors for the clustering.
  */
 static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_t k, cluster *c, bool internalFeatureWeights, eMethodType featureWeightsMethod, bool internalObjectWeights, eMethodType objectWeightsMethod, double **dist);
@@ -242,6 +288,7 @@ static double CLUSTER_weightedKmeans7(data *dat, uint64_t n, uint64_t p, uint32_
  *  @param p The number of data dimensions.
  *  @param c The pointer to the clusters.
  *  @param k The number of clusters. 
+ *  @param dist The double pointer to the distance matrix point to point.
  *  @return The computed silhouette score for the clustering.
  */
 static double CLUSTER_computeSilhouette4(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double **dist);
@@ -294,7 +341,7 @@ static double CLUSTER_computeCH(double TSS, double SSE, uint64_t n, uint32_t k);
 
 /** @brief Initializes objects weights to 1. 
  *
- *  @param ow The pointer to the objects weights.
+ *  @param dat The pointer to data.
  *  @param n The number of objects. 
  *  @return Void.
  */
@@ -308,8 +355,7 @@ static void CLUSTER_initObjectWeights(data *dat, uint64_t n);
  *  @param p The number of data dimensions.
  *  @param c The pointer to the clusters.
  *  @param k The number of clusters.
- *  @param fw The features weights.
- *  @param m The method for objects weights calculation.
+ *  @param m The method for features weights calculation.
  *  @return Void.
  */
 static void CLUSTER_computeFeatureWeights(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, eMethodType m);
@@ -375,8 +421,8 @@ static double CLUSTER_computeFeatureDispersion(data *dat, uint64_t p, cluster *c
  *  @param p The number of data dimensions.
  *  @param c The pointer to the clusters.
  *  @param k The number of clusters.
- *  @param ow The pointer to the objects weights.
  *  @param m The method for objects weights calculation.
+ *  @param dist The double pointer to the distance matrix point to point.
  *  @return Void.
  */
 static void CLUSTER_computeObjectWeights3(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, eMethodType m, double **dist);
@@ -390,8 +436,8 @@ static void CLUSTER_computeObjectWeights3(data *dat, uint64_t n, uint64_t p, clu
  *  @param c The pointer to the clusters.
  *  @param k The number of clusters.
  *  @param indK The id of the cluster.
- *  @param ow The pointer to the objects weights.
  *  @param m The method for objects weights calculation.
+ *  @param dist The double pointer to the distance matrix point to point.
  *  @return Void.
  */
 static void CLUSTER_computeObjectWeightsInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, eMethodType m, double **dist);
@@ -402,48 +448,191 @@ static void CLUSTER_computeObjectWeightsInCluster(data *dat, uint64_t n, uint64_
  *  @param dat The pointer to data.
  *  @param n The number of the data.
  *  @param p The number of data dimensions.
- *  @param k The number of clusters. 
  *  @param c The pointer to the clusters.
- *  @param ow The pointer to the objects weights.
+ *  @param k The number of clusters.
+ *  @param dist The double pointer to the distance matrix point to point.
  *  @return Void.
  */
 static void CLUSTER_computeObjectWeightsViaSilhouette4(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double **dist);
 
+/** @brief Computes objects weights via silhouette
+ *         score. The sum of objects weights in a cluster
+ *         is equal to the number of points in the cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param dist The double pointer to the distance matrix point to point.
+ *  @return Void.
+ */
 static void CLUSTER_computeObjectWeightsViaSilhouetteNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double **dist);
 
+/** @brief Computes objects weights via silhouette
+ *         score in a cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param indK The index of the cluster.
+ *  @param dist The double pointer to the distance matrix point to point.
+ *  @return Void.
+ */
 static void CLUSTER_computeObjectWeightsInClusterViaSilhouette(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist);
 
+/** @brief Computes objects weights via silhouette
+ *         score in a cluster. The sum of objects weights in 
+ *         the cluster is equal to the number of points in the 
+ *         cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param indK The index of the cluster.
+ *  @param dist The double pointer to the distance matrix point to point.
+ *  @return Void.
+ */
 static void CLUSTER_computeObjectWeightsInClusterViaSilhouetteNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK, double **dist);
 
+/** @brief Computes objects weights via the distance 
+ *         with the nearest centroid (different from its own).
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param dist The double pointer to the distance matrix point to point.
+ *  @return Void.
+ */
 static void CLUSTER_computeObjectWeightsViaMinDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+/** @brief Computes objects weights via the distance 
+ *         with the nearest centroid (different from its own). 
+ *         The sum of objects weights in a cluster is equal to 
+ *         the number of points in the cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param dist The double pointer to the distance matrix point to point.
+ *  @return Void.
+ */
 static void CLUSTER_computeObjectWeightsViaMinDistCentroidNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+/** @brief Computes objects weights via the distance 
+ *         with the nearest centroid (different from its own).
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param indK The index of the cluster.
+ *  @param dist The double pointer to the distance matrix point to point.
+ *  @return Void.
+ */
+static void CLUSTER_computeObjectWeightsInClusterViaMinDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK);
+
+/** @brief Computes objects weights via the distance 
+ *         with the nearest centroid (different from its own) 
+ *         in a cluster. The sum of objects weights in the 
+ *         cluster is equal to the number of points in the cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param indK The index of the cluster.
+ *  @param dist The double pointer to the distance matrix point to point.
+ *  @return Void.
+ */
+static void CLUSTER_computeObjectWeightsInClusterViaMinDistCentroidNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK);
+
+/** @brief Computes objects weights via the sum of distances 
+ *         with the other centroids (different from its own).
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param dist The double pointer to the distance matrix point to point.
+ *  @return Void.
+ */
 static void CLUSTER_computeObjectWeightsViaSumDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
+
+/** @brief Computes objects weights via the sum of distances 
+ *         with the other centroids (different from its own)
+ *         in a cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param dist The double pointer to the distance matrix point to point.
+ *  @return Void.
+ */
+static void CLUSTER_computeObjectWeightsInClusterViaSumDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK);
 
 /** @brief Computes objects weights via the median.
  *
  *  @param dat The pointer to data.
  *  @param n The number of the data.
  *  @param p The number of data dimensions.
- *  @param k The number of clusters. 
  *  @param c The pointer to the clusters.
- *  @param ow The pointer to the objects weights.
+ *  @param k The number of clusters.
  *  @return Void.
  */
 static void CLUSTER_computeObjectWeightsViaMedian2(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+/** @brief Computes objects weights via the median. 
+ *         The sum of objects weights in the cluster 
+ *         is equal to the number of objects in the cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @return Void.
+ */
 static void CLUSTER_computeObjectWeightsViaMedianNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+/** @brief Computes objects weights via the median in a cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param indK The index of the cluster.
+ *  @return Void.
+ */
 static void CLUSTER_computeObjectWeightsInClusterViaMedian(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t indK);
 
+/** @brief Computes objects weights via the median in a cluster.
+ *         The sum of objects weights in the cluster 
+ *         is equal to the number of objects in the cluster.
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param k The number of clusters.
+ *  @param indK The index of the cluster.
+ *  @return Void.
+ */
 static void CLUSTER_computeObjectWeightsInClusterViaMedianNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t indK);
-
-static void CLUSTER_computeObjectWeightsInClusterViaMinDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK);
-
-static void CLUSTER_computeObjectWeightsInClusterViaMinDistCentroidNK(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK);
-
-static void CLUSTER_computeObjectWeightsInClusterViaSumDistCentroid(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK);
 
 /** @brief Computes the sum of squared errors for a 
  *         clustering. 
@@ -457,8 +646,26 @@ static void CLUSTER_computeObjectWeightsInClusterViaSumDistCentroid(data *dat, u
  */
 static double CLUSTER_computeSSE(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k);
 
+/** @brief Computes the within sum of squares. 
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param wss The array of wss per cluster.
+ *  @return Void.
+ */
 static void CLUSTER_computeNkWeightedWSS(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, double wss[k]);
 
+/** @brief Computes the within sum of squares. 
+ *
+ *  @param dat The pointer to data.
+ *  @param n The number of the data.
+ *  @param p The number of data dimensions.
+ *  @param c The pointer to the clusters.
+ *  @param indK The cluster index.
+ *  @return The computed wss for the cluster indK.
+ */
 static double CLUSTER_computeNkWeightedWSSInCluster(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, uint32_t indK);
 
 /** @brief Computes the matrix of distances 
@@ -1086,7 +1293,6 @@ static double CLUSTER_featuresWeightedKmeans(data *dat, uint64_t n, uint64_t p, 
     }
     else
     {
-        //eMethodType feaWeiMed = METHOD_DISPERSION;
         bool conv = false; // Has converged
 
         // Initialization
@@ -1482,7 +1688,7 @@ static void CLUSTER_assignWeightedDataToCentroids(data *dat, uint64_t n, uint64_
     }
 }
 
-static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, eMethodType feaWeiMed, bool internalObjectWeights, eMethodType objWeiMet, double **dist, double wss[k], bool *conv)
+static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint64_t p, cluster *c, uint32_t k, bool internalFeatureWeights, eMethodType feaWeiMet, bool internalObjectWeights, eMethodType objWeiMet, double **dist, double wss[k], bool *conv)
 {
     uint64_t i;
     uint32_t l;
@@ -1529,7 +1735,7 @@ static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint6
         if(internalFeatureWeights == true)
         {
             // Internal computation of feature weights
-            CLUSTER_computeFeatureWeightsInCluster(dat, n, p, c, k, curClust, feaWeiMed);
+            CLUSTER_computeFeatureWeightsInCluster(dat, n, p, c, k, curClust, feaWeiMet);
         }
 
         /*double sum = 0.0;
@@ -1598,7 +1804,7 @@ static void CLUSTER_assignWeightedDataToCentroids27(data *dat, uint64_t n, uint6
                 if(internalFeatureWeights == true)
                 {
                     // Internal computation of feature weights
-                    CLUSTER_computeFeatureWeightsInCluster(dat, n, p, c, k, l, feaWeiMed);
+                    CLUSTER_computeFeatureWeightsInCluster(dat, n, p, c, k, l, feaWeiMet);
                 }
 
                 /*data *pti = (data *)c[l].head;

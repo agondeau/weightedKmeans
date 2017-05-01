@@ -98,7 +98,7 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
  *  @param featureWeightsFile The string to the features 
  *               weights file.
  *  @param featureWeightsMethod The features calculation 
- *               methods.
+ *               method.
  *  @return Void.
  */
 void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod);
@@ -123,11 +123,15 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
  *               from internal computation or from a file.
  *  @param featureWeightsFile The string to the features 
  *               weights file.
+ *  @param featureWeightsMethod The features calculation 
+ *               method.
  *  @param internalObjectWeights The boolean that 
  *               specified if the objects weights come 
  *               from internal computation or from a file.
  *  @param objectWeightsFile The string to the objects 
  *               weights file.
+ *  @param objectWeightsMethod The objects calculation 
+ *               method.
  *  @return Void.
  */
 void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod, bool internalObjectWeights, const char *objectWeightsFile, eMethodType objectWeightsMethod);
