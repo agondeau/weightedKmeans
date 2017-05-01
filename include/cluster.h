@@ -75,10 +75,6 @@ typedef enum _eMethodType
  *               each number of clusters.
  *  @return Void.
  */
-void CLUSTER_computeKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
-
-void CLUSTER_computeKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
-void CLUSTER_computeKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
 void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
 
 /** @brief Computes the features weighted  
@@ -134,10 +130,6 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
  *               weights file.
  *  @return Void.
  */
-void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile);
-
-void CLUSTER_computeWeightedKmeans2(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, bool internalObjectWeights, const char *objectWeightsFile);
-
 void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod, bool internalObjectWeights, const char *objectWeightsFile, eMethodType objectWeightsMethod);
 
 #endif /* _CLUSTER_H */

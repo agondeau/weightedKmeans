@@ -264,18 +264,12 @@ int main(int argc, char *argv[]) {
             else if((!featuresWeightedKmeans && objectsWeightedKmeans) || (featuresWeightedKmeans && objectsWeightedKmeans))
             {
                 INF("Objects (and features) weighted k-means");
-                //CLUSTER_computeWeightedKmeans(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName);
-                //CLUSTER_computeWeightedKmeans2(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName);
                 CLUSTER_computeWeightedKmeans3(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, feaWeiMet, internalObjectWeights, objectWeightFileName, objWeiMet); // ow[n]
-                //CLUSTER_computeWeightedKmeans4(dat, n, p, kmax, nbRep, internalFeatureWeights, featureWeightFileName, internalObjectWeights, objectWeightFileName); // ow[n][k]
             }
             // Classical k-means
             else
             {
                 INF("Classic k-means");
-                //CLUSTER_computeKmeans(dat, n, p, kmax, nbRep);
-                //CLUSTER_computeKmeans2(dat, n, p, kmax, nbRep);
-                //CLUSTER_computeKmeans3(dat, n, p, kmax, nbRep);
                 CLUSTER_computeKmeans4(dat, n, p, kmax, nbRep);
             }
 
