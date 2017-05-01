@@ -69,13 +69,15 @@ typedef enum _eMethodType
  *  @param dat The pointer to data.
  *  @param n The number of the data.
  *  @param p The number of data dimensions.
+ *  @param kmin The minimum number of clusters 
+ *               that will be computed.
  *  @param kmax The maximum number of clusters 
  *               that will be computed.
  *  @param nbRep The number of random starts for 
  *               each number of clusters.
  *  @return Void.
  */
-void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep);
+void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmin, uint32_t kmax,uint32_t nbRep);
 
 /** @brief Computes the features weighted  
  *         version of k-means algorithm.
@@ -88,6 +90,8 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
  *  @param dat The pointer to data.
  *  @param n The number of the data.
  *  @param p The number of data dimensions.
+ *  @param kmin The minimum number of clusters 
+ *               that will be computed.
  *  @param kmax The maximum number of clusters 
  *               that will be computed.
  *  @param nbRep The number of random starts for 
@@ -101,7 +105,7 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
  *               method.
  *  @return Void.
  */
-void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod);
+void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmin, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod);
 
 /** @brief Computes the weighted (features/objects) 
  *         version of k-means algorithm.
@@ -114,6 +118,8 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
  *  @param dat The pointer to data.
  *  @param n The number of the data.
  *  @param p The number of data dimensions.
+ *  @param kmin The minimum number of clusters 
+ *               that will be computed.
  *  @param kmax The maximum number of clusters 
  *               that will be computed.
  *  @param nbRep The number of random starts for 
@@ -134,6 +140,6 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
  *               method.
  *  @return Void.
  */
-void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod, bool internalObjectWeights, const char *objectWeightsFile, eMethodType objectWeightsMethod);
+void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmin, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod, bool internalObjectWeights, const char *objectWeightsFile, eMethodType objectWeightsMethod);
 
 #endif /* _CLUSTER_H */

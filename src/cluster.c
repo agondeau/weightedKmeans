@@ -27,7 +27,6 @@
 
 /* Clustering constant defines. */
 #define NB_ITER 100
-#define K_MIN 2
 
 /* Macro defines. */
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
@@ -690,15 +689,15 @@ static void CLUSTER_FreeMatDistPointToPoint(uint64_t n, double ***dist);
 
 /* -- Function definitions -- */
 
-void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep)
+void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmin, uint32_t kmax,uint32_t nbRep)
 {
     uint32_t i, k, o;
     uint64_t j;
-    double statSil[kmax], statVRC2[kmax], statCH[kmax];
+    double statSil[kmax+1], statVRC2[kmax+1], statCH[kmax+1];
     uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
 
     // Initialize statistics
-    for(k=kmax;k>=K_MIN;k--)
+    for(k=kmax;k>=kmin;k--)
     {
         statSil[k] = -1.0;
         statVRC2[k] = 0.0;
@@ -715,7 +714,7 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
 
 
     //WRN("Iteration %d", i);
-    for(k=kmax;k>=K_MIN;k--) // From kMax to kMin
+    for(k=kmax;k>=kmin;k--) // From kMax to kMin
     {
         //k = kmax;    
 
@@ -881,7 +880,7 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
     // Retrieve the overall best statistics
     double silMax = -1.0, vrc2Max = 0.0, chMax = 0.0;
     uint32_t kSilMax, kVrc2Max, kChMax;
-    for(k=kmax;k>=K_MIN;k--)
+    for(k=kmax;k>=kmin;k--)
     {
         if(statSil[k] > silMax)
         {
@@ -944,15 +943,15 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uin
     CLUSTER_FreeMatDistPointToPoint(n, &dist); 
 }
 
-void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod, bool internalObjectWeights, const char *objectWeightsFile, eMethodType objectWeightsMethod)
+void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t kmin, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod, bool internalObjectWeights, const char *objectWeightsFile, eMethodType objectWeightsMethod)
 {
     uint32_t i, k, o;
     uint64_t j;
-    double statSil[kmax], statVRC2[kmax], statCH[kmax];
+    double statSil[kmax+1], statVRC2[kmax+1], statCH[kmax+1];
     uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
 
     // Initialize statistics
-    for(k=kmax;k>=K_MIN;k--)
+    for(k=kmax;k>=kmin;k--)
     {
         statSil[k] = -1.0;
         statVRC2[k] = 0.0;
@@ -979,7 +978,7 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
     }
 
     //WRN("Iteration %d", i);
-    for(k=kmax;k>=K_MIN;k--) // From kMax to kMin
+    for(k=kmax;k>=kmin;k--) // From kMax to kMin
     {
         for(i=0;i<nbRep;i++) // Number of replicates
         {
@@ -1054,7 +1053,7 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
     // Retrieve the overall best statistics
     double silMax = -1.0, vrc2Max = 0.0, chMax = 0.0;
     uint32_t kSilMax, kVrc2Max, kChMax;
-    for(k=kmax;k>=K_MIN;k--)
+    for(k=kmax;k>=kmin;k--)
     {
         if(statSil[k] > silMax)
         {
@@ -1104,16 +1103,16 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
     CLUSTER_FreeMatDistPointToPoint(n, &dist); 
 }
 
-void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod)
+void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t kmin, uint32_t kmax,uint32_t nbRep, bool internalFeatureWeights, const char *featureWeightsFile, eMethodType featureWeightsMethod)
 {
     uint32_t i, k, o;
     uint64_t j;
-    double statSil[kmax], statVRC2[kmax], statCH[kmax];
+    double statSil[kmax+1], statVRC2[kmax+1], statCH[kmax+1];
     uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
     //double ow[n];
 
     // Initialize statistics
-    for(k=kmax;k>=K_MIN;k--)
+    for(k=kmax;k>=kmin;k--)
     {
         statSil[k] = -1.0;
         statVRC2[k] = 0.0;
@@ -1134,7 +1133,7 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
     }
 
     //WRN("Iteration %d", i);
-    for(k=kmax;k>=K_MIN;k--) // From kMax to kMin
+    for(k=kmax;k>=kmin;k--) // From kMax to kMin
     {
         for(i=0;i<nbRep;i++) // Number of replicates
         {
@@ -1204,7 +1203,7 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
     // Retrieve the overall best statistics
     double silMax = -1.0, vrc2Max = 0.0, chMax = 0.0;
     uint32_t kSilMax, kVrc2Max, kChMax;
-    for(k=kmax;k>=K_MIN;k--)
+    for(k=kmax;k>=kmin;k--)
     {
         if(statSil[k] > silMax)
         {
