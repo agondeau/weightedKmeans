@@ -2325,7 +2325,7 @@ static double CLUSTER_computeVRC2(data *dat, cluster *c, double SSE, uint64_t n,
         }
     }
 
-    return ((SSB / SSE) * ((n - k) / (k - 1)));   
+    return (SSB / (k - 1)) / (SSE / (n - k)); 
 }
 
 static double CLUSTER_computeCH(double TSS, double SSE, uint64_t n, uint32_t k)
