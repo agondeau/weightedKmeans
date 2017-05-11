@@ -304,39 +304,19 @@ static double CLUSTER_computeSilhouette4(data *dat, uint64_t n, uint64_t p, clus
  */
 static double CLUSTER_computeDistancePointToPoint(data *iDat, data *jDat, uint64_t p, eDistanceType d);
 
-/** @brief Computes the total sum of squares for 
- *         the data.
- *
- *  @param dat The pointer to data.
- *  @param n The number of the data.
- *  @param p The number of data dimensions.
- *  @return The computed total sum of squares for the data.
- */
-static double CLUSTER_computeTSS(data *dat, uint64_t n, uint64_t p); 
-
 /** @brief Computes the variance ratio criterion for 
  *         a clustering.
  *
- *  @param TSS The computed total sum of squares for the data.
+ *  @param dat The pointer to data.
+ *  @param c The pointer to the clusters.
  *  @param SSE The sum of squared errors for the clustering.
  *  @param n The number of the data.
+ *  @param p The number of data dimensions.
  *  @param k The number of clusters. 
  *  @return The computed variance ratio criterion for the 
  *          clustering.
  */
-static double CLUSTER_computeVRC2(data *dat, cluster *c, double SSE, uint64_t n, uint64_t p, uint32_t k);
-
-/** @brief Computes the Calinski-Harabasz criterion for 
- *         a clustering.
- *
- *  @param TSS The computed total sum of squares for the data.
- *  @param SSE The sum of squared errors for the clustering.
- *  @param n The number of the data.
- *  @param k The number of clusters. 
- *  @return The computed Calinski-Harabasz criterion for the 
- *          clustering.
- */
-static double CLUSTER_computeCH(double TSS, double SSE, uint64_t n, uint32_t k); 
+static double CLUSTER_computeCH(data *dat, cluster *c, double SSE, uint64_t n, uint64_t p, uint32_t k);
 
 /** @brief Initializes objects weights to 1. 
  *
@@ -693,20 +673,15 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmin, ui
 {
     uint32_t i, k, o;
     uint64_t j;
-    double statSil[kmax+1], statVRC2[kmax+1], statCH[kmax+1];
-    uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
+    double statSil[kmax+1], statCH[kmax+1];
+    uint32_t silGrp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
 
     // Initialize statistics
     for(k=kmax;k>=kmin;k--)
     {
         statSil[k] = -1.0;
-        statVRC2[k] = 0.0;
         statCH[k] = 0.0;
     }
-
-    // Compute total sum of squares 
-    double TSS = CLUSTER_computeTSS(dat, n, p);
-    //double TSS2 = CLUSTER_computeTSS2(dat, n, p);
 
     // Calculate the matrix of distance between points
     double **dist;
@@ -752,13 +727,9 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmin, ui
             double sil = CLUSTER_computeSilhouette4(dat, n, p, c, k, dist);
             //SAY("Silhouette = %lf", sil);
 
-            // Compute VRC statistic
-            double vrc2 = CLUSTER_computeVRC2(dat, c, SSE, n, p, k);
-            //SAY("VRC2 = %lf", vrc2);
-
             // Compute CH statistic
-            double ch = CLUSTER_computeCH(TSS, SSE, n, k);
-            //SAY("CH = %lf", ch);
+            double ch = CLUSTER_computeCH(dat, c, SSE, n, p, k);
+            //SAY("VRC2 = %lf", vrc2);
 
             // Compute CH statistic
             //double ch2 = CLUSTER_computeCH(TSS2, SSE, n, k);
@@ -781,17 +752,6 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmin, ui
                        ERR("c.nbData = %ld", c[o].nbData); */
                     clustNull = true;
                 }    
-            }
-
-            // Save best VRC statistic for each k
-            if((vrc2 > statVRC2[k] || i == 0) && clustNull == false)
-            {
-                statVRC2[k] = vrc2;
-                // Save data membership for each k (VRC2)
-                for(j=0;j<n;j++)
-                {
-                    vrc2Grp[k][j] = dat[j].clusterID;
-                }
             }
 
             // Save best CH statistic for each k
@@ -878,20 +838,14 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmin, ui
     }
 
     // Retrieve the overall best statistics
-    double silMax = -1.0, vrc2Max = 0.0, chMax = 0.0;
-    uint32_t kSilMax, kVrc2Max, kChMax;
+    double silMax = -1.0, chMax = 0.0;
+    uint32_t kSilMax, kChMax;
     for(k=kmax;k>=kmin;k--)
     {
         if(statSil[k] > silMax)
         {
             silMax = statSil[k];
             kSilMax = k;
-        }
-
-        if(statVRC2[k] > vrc2Max)
-        {
-            vrc2Max = statVRC2[k];
-            kVrc2Max = k;
         }
 
         if(statCH[k] > chMax)
@@ -904,7 +858,6 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmin, ui
     WRN("");
     WRN("Final statistics -----------------------");
     INF("Best silhouette : %lf for k = %d", silMax, kSilMax);
-    INF("Best VRC2 : %lf for k = %d", vrc2Max, kVrc2Max);
     INF("Best CH : %lf for k = %d", chMax, kChMax);
     //INF("Best CH2 : %lf for k = %d", ch2Max, kCh2Max);
     WRN("");
@@ -922,17 +875,14 @@ void CLUSTER_computeKmeans4(data *dat, uint64_t n, uint64_t p, uint32_t kmin, ui
     }*/
     printf("dataId\t");
     printf("Sil\t");
-    printf("VRC2\t");
     printf("CH\t\n");
     printf("\t%d-Gr\t", kSilMax);
-    printf("%d-Gr\t", kVrc2Max);
     printf("%d-Gr\t", kChMax);
     INF("");
     for(j=0;j<n;j++)
     {
         printf("%ld\t", (j + 1));
         printf("%d\t", silGrp[kSilMax][j]);
-        printf("%d\t", vrc2Grp[kVrc2Max][j]);
         printf("%d\t", chGrp[kChMax][j]);
         INF("");
     }
@@ -947,19 +897,15 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
 {
     uint32_t i, k, o;
     uint64_t j;
-    double statSil[kmax+1], statVRC2[kmax+1], statCH[kmax+1];
-    uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
+    double statSil[kmax+1], statCH[kmax+1];
+    uint32_t silGrp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
 
     // Initialize statistics
     for(k=kmax;k>=kmin;k--)
     {
         statSil[k] = -1.0;
-        statVRC2[k] = 0.0;
         statCH[k] = -1e20;
     }
-
-    // Compute total sum of squares 
-    double TSS = CLUSTER_computeTSS(dat, n, p);
 
     // Calculate the matrix of distance between points
     double **dist;
@@ -998,11 +944,8 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
             // Compute silhouette statistic
             double sil = CLUSTER_computeSilhouette4(dat, n, p, c, k, dist);
 
-            // Compute VRC statistic
-            double vrc2 = CLUSTER_computeVRC2(dat, c, SSE, n, p, k);
-
             // Compute CH statistic
-            double ch = CLUSTER_computeCH(TSS, SSE, n, k);
+            double ch = CLUSTER_computeCH(dat, c, SSE, n, p, k);
 
             bool clustNull = false;
             for(o=0;o<k;o++)
@@ -1011,17 +954,6 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
                 {
                     clustNull = true;
                 }    
-            }
-
-            // Save best VRC statistic for each k
-            if((vrc2 > statVRC2[k] || i == 0) && clustNull == false)
-            {
-                statVRC2[k] = vrc2;
-                // Save data membership for each k (VRC)
-                for(j=0;j<n;j++)
-                {
-                    vrc2Grp[k][j] = dat[j].clusterID;
-                }
             }
 
             // Save best CH statistic for each k
@@ -1051,20 +983,14 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
     }
 
     // Retrieve the overall best statistics
-    double silMax = -1.0, vrc2Max = 0.0, chMax = 0.0;
-    uint32_t kSilMax, kVrc2Max, kChMax;
+    double silMax = -1.0, chMax = 0.0;
+    uint32_t kSilMax, kChMax;
     for(k=kmax;k>=kmin;k--)
     {
         if(statSil[k] > silMax)
         {
             silMax = statSil[k];
             kSilMax = k;
-        }
-
-        if(statVRC2[k] > vrc2Max)
-        {
-            vrc2Max = statVRC2[k];
-            kVrc2Max = k;
         }
 
         if(statCH[k] > chMax)
@@ -1077,23 +1003,19 @@ void CLUSTER_computeWeightedKmeans3(data *dat, uint64_t n, uint64_t p, uint32_t 
     WRN("");
     WRN("Final statistics -----------------------");
     INF("Best silhouette : %lf for k = %d", silMax, kSilMax);
-    INF("Best VRC2 : %lf for k = %d", vrc2Max, kVrc2Max);
     INF("Best CH : %lf for k = %d", chMax, kChMax);
     WRN("");
     WRN("Data membership for best indice scores -");
     printf("dataId\t");
     printf("Sil\t");
-    printf("VRC2\t");
     printf("CH\t\n");
     printf("\t%d-Gr\t", kSilMax);
-    printf("%d-Gr\t", kVrc2Max);
     printf("%d-Gr\t", kChMax);
     INF("");
     for(j=0;j<n;j++)
     {
         printf("%ld\t", (j + 1));
         printf("%d\t", silGrp[kSilMax][j]);
-        printf("%d\t", vrc2Grp[kVrc2Max][j]);
         printf("%d\t", chGrp[kChMax][j]);
         INF("");
     }
@@ -1107,20 +1029,16 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
 {
     uint32_t i, k, o;
     uint64_t j;
-    double statSil[kmax+1], statVRC2[kmax+1], statCH[kmax+1];
-    uint32_t silGrp[kmax+1][n], vrc2Grp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
+    double statSil[kmax+1], statCH[kmax+1];
+    uint32_t silGrp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
     //double ow[n];
 
     // Initialize statistics
     for(k=kmax;k>=kmin;k--)
     {
         statSil[k] = -1.0;
-        statVRC2[k] = 0.0;
         statCH[k] = 0.0;
     }
-
-    // Compute total sum of squares 
-    double TSS = CLUSTER_computeTSS(dat, n, p);
 
     // Calculate the matrix of distance between points
     double **dist;
@@ -1147,11 +1065,8 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
             // Compute silhouette statistic
             double sil = CLUSTER_computeSilhouette4(dat, n, p, c, k, dist);
 
-            // Compute VRC statistic
-            double vrc2 = CLUSTER_computeVRC2(dat, c, SSE, n, p, k);
-
             // Compute CH statistic
-            double ch = CLUSTER_computeCH(TSS, SSE, n, k);
+            double ch = CLUSTER_computeCH(dat, c, SSE, n, p, k);
 
             // Check for null clusters
             bool clustNull = false;
@@ -1161,17 +1076,6 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
                 {
                     clustNull = true;
                 }    
-            }
-
-            // Save best VRC statistic for each k
-            if((vrc2 > statVRC2[k] || i == 0) && clustNull == false)
-            {
-                statVRC2[k] = vrc2;
-                // Save data membership for each k (VRC)
-                for(j=0;j<n;j++)
-                {
-                    vrc2Grp[k][j] = dat[j].clusterID;
-                }
             }
 
             // Save best CH statistic for each k
@@ -1201,20 +1105,14 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
     }
 
     // Retrieve the overall best statistics
-    double silMax = -1.0, vrc2Max = 0.0, chMax = 0.0;
-    uint32_t kSilMax, kVrc2Max, kChMax;
+    double silMax = -1.0, chMax = 0.0;
+    uint32_t kSilMax, kChMax;
     for(k=kmax;k>=kmin;k--)
     {
         if(statSil[k] > silMax)
         {
             silMax = statSil[k];
             kSilMax = k;
-        }
-
-        if(statVRC2[k] > vrc2Max)
-        {
-            vrc2Max = statVRC2[k];
-            kVrc2Max = k;
         }
 
         if(statCH[k] > chMax)
@@ -1227,23 +1125,19 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
     WRN("");
     WRN("Final statistics -----------------------");
     INF("Best silhouette : %lf for k = %d", silMax, kSilMax);
-    INF("Best VRC2 : %lf for k = %d", vrc2Max, kVrc2Max);
     INF("Best CH : %lf for k = %d", chMax, kChMax);
     WRN("");
     WRN("Data membership for best indice scores -");
     printf("dataId\t");
     printf("Sil\t");
-    printf("VRC2\t");
     printf("CH\t\n");
     printf("\t%d-Gr\t", kSilMax);
-    printf("%d-Gr\t", kVrc2Max);
     printf("%d-Gr\t", kChMax);
     INF("");
     for(j=0;j<n;j++)
     {
         printf("%ld\t", (j + 1));
         printf("%d\t", silGrp[kSilMax][j]);
-        printf("%d\t", vrc2Grp[kVrc2Max][j]);
         printf("%d\t", chGrp[kChMax][j]);
         INF("");
     }
@@ -2273,35 +2167,7 @@ static double CLUSTER_computeDistancePointToPoint(data *iDat, data *jDat, uint64
     }
 }
 
-static double CLUSTER_computeTSS(data *dat, uint64_t n, uint64_t p)
-{
-    if(dat == NULL || n < 2 || p < 1)
-    {
-        ERR("Bad parameter");
-        return -1.0;
-    }
-    else
-    {
-        uint64_t i, j;
-        double mean[p];
-        double TSS = 0.0;
-
-        for(j=0;j<p;j++)
-            mean[j] = 0.0;
-
-        for(i=0;i<n;i++)
-            for(j=0;j<p;j++)
-                mean[j] += (dat[i].dim[j]/(double)n);
-
-        for(i=0;i<n;i++)
-            for(j=0;j<p;j++)
-                TSS += pow(dat[i].dim[j] - mean[j], 2.0);
-
-        return TSS;
-    }
-}
-
-static double CLUSTER_computeVRC2(data *dat, cluster *c, double SSE, uint64_t n, uint64_t p, uint32_t k)
+static double CLUSTER_computeCH(data *dat, cluster *c, double SSE, uint64_t n, uint64_t p, uint32_t k)
 {
     uint64_t i, j;
     uint32_t l;
@@ -2326,12 +2192,6 @@ static double CLUSTER_computeVRC2(data *dat, cluster *c, double SSE, uint64_t n,
     }
 
     return (SSB / (k - 1)) / (SSE / (n - k)); 
-}
-
-static double CLUSTER_computeCH(double TSS, double SSE, uint64_t n, uint32_t k)
-{
-    double tmp = SSE / (double)(n - k);
-    return ( (TSS - SSE) / (double)(k - 1)) / tmp; 
 }
 
 static void CLUSTER_initObjectWeights(data *dat, uint64_t n)
