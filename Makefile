@@ -5,7 +5,7 @@ source_dir = $(current_dir)/src
 
 MKDIR_P = mkdir -p
 CC = gcc
-CFLAGS = -g -Wall #-Werror
+CFLAGS = -g -Wall
 binary = kmeans
 
 all: main.c $(source_dir)/cluster.c
