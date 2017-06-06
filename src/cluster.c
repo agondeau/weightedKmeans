@@ -792,6 +792,7 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
     uint64_t j;
     double statSil[kmax+1], statCH[kmax+1];
     uint32_t silGrp[kmax+1][n], chGrp[kmax+1][n]; // Data membership for each k
+    double owSilGrp[kmax+1][n], owChGrp[kmax+1][n]; // Data weight for each k
 
     // Initialize statistics
     for(k=kmax;k>=kmin;k--)
@@ -853,10 +854,11 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
             if((ch > statCH[k] || i == 0) && clustNull == false)
             {
                 statCH[k] = ch;
-                // Save data membership for each k (VRC)
+                // Save data membership for each k
                 for(j=0;j<n;j++)
                 {
                     chGrp[k][j] = dat[j].clusterID;
+                    owChGrp[k][j] = dat[j].ow; // Retreive objects weights
                 }
             }
 
@@ -864,10 +866,12 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
             if((sil > statSil[k] || i == 0) && clustNull == false)
             {
                 statSil[k] = sil;
-                // Save data membership for each k (VRC)
+                // Save data membership for each k
                 for(j=0;j<n;j++)
                 {
                     silGrp[k][j] = dat[j].clusterID;
+                    owSilGrp[k][j] = dat[j].ow; // Retreive objects weights
+
                 }
             }
 
@@ -902,15 +906,21 @@ void CLUSTER_computeWeightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t k
     WRN("Data membership for best indice scores -");
     printf("dataId\t");
     printf("Sil\t");
-    printf("CH\t\n");
+    printf("CH\t");
+    printf("Sil\t");
+    printf("\tCH\t\n");
     printf("\t%d-Gr\t", kSilMax);
     printf("%d-Gr\t", kChMax);
+    printf("OW\t");
+    printf("\tOW\t");
     INF("");
     for(j=0;j<n;j++)
     {
         printf("%ld\t", (j + 1));
         printf("%d\t", silGrp[kSilMax][j]);
         printf("%d\t", chGrp[kChMax][j]);
+        printf("%lf\t", owSilGrp[kSilMax][j]);
+        printf("%lf\t", owChGrp[kChMax][j]);
         INF("");
     }
     WRN("----------------------------------------");
@@ -976,7 +986,7 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
             if((ch > statCH[k] || i == 0) && clustNull == false)
             {
                 statCH[k] = ch;
-                // Save data membership for each k (VRC)
+                // Save data membership for each k
                 for(j=0;j<n;j++)
                 {
                     chGrp[k][j] = dat[j].clusterID;
@@ -987,7 +997,7 @@ void CLUSTER_computeFeaturesWeightedKmeans(data *dat, uint64_t n, uint64_t p, ui
             if((sil > statSil[k] || i == 0) && clustNull == false)
             {
                 statSil[k] = sil;
-                // Save data membership for each k (VRC)
+                // Save data membership for each k
                 for(j=0;j<n;j++)
                 {
                     silGrp[k][j] = dat[j].clusterID;
@@ -1132,7 +1142,6 @@ static double CLUSTER_weightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t
         CLUSTER_randomCentroids(dat, n, p, c, k);
         CLUSTER_assignDataToCentroids(dat, n, p, c, k, &conv);
         CLUSTER_computeCentroids(dat, n, p, c, k);
-        CLUSTER_computeNkWeightedWSS(dat, n, p, c, k, wss);
 
         // Computes weights
         if(internalFeatureWeights == true)
@@ -1143,6 +1152,8 @@ static double CLUSTER_weightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t
         {
             CLUSTER_computeObjectWeights(dat, n, p, c, k, objectWeightsMethod, dist);
         }
+
+        CLUSTER_computeNkWeightedWSS(dat, n, p, c, k, wss);
 
         uint8_t iter = 0;
         conv = false;
