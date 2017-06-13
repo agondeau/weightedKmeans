@@ -1143,7 +1143,7 @@ static double CLUSTER_weightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t
         CLUSTER_assignDataToCentroids(dat, n, p, c, k, &conv);
         CLUSTER_computeCentroids(dat, n, p, c, k);
 
-        // Computes weights
+        // Compute weights
         if(internalFeatureWeights == true)
         {
             CLUSTER_computeFeatureWeights(dat, n, p, c, k, featureWeightsMethod);
@@ -1163,6 +1163,16 @@ static double CLUSTER_weightedKmeans(data *dat, uint64_t n, uint64_t p, uint32_t
             CLUSTER_assignWeightedDataToCentroids(dat, n, p, c, k, internalFeatureWeights, featureWeightsMethod, internalObjectWeights, objectWeightsMethod, dist, wss, &conv);
 
             iter++;
+        }
+
+        // Update weights
+        if(internalFeatureWeights == true)
+        {
+            CLUSTER_computeFeatureWeights(dat, n, p, c, k, featureWeightsMethod);
+        }
+        if(internalObjectWeights == true)
+        {
+            CLUSTER_computeObjectWeights(dat, n, p, c, k, objectWeightsMethod, dist);
         }
 
         // Return the sum of squared errors
