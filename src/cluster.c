@@ -2727,7 +2727,7 @@ static void CLUSTER_computeNkWeightedWSS(data *dat, uint64_t n, uint64_t p, clus
 
     for(i=0;i<n;i++)
     {
-        wss[dat[i].clusterID] += CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN, (double *)c[dat[i].clusterID].fw, dat[i].ow)/(double)c[dat[i].clusterID].nbData;
+        wss[dat[i].clusterID] += CLUSTER_computeSquaredDistanceWeightedPointToCluster(&(dat[i]), p, &(c[dat[i].clusterID]), DISTANCE_EUCLIDEAN, (double *)c[dat[i].clusterID].fw, dat[i].ow);
     }
 }
 
@@ -2739,7 +2739,7 @@ static double CLUSTER_computeNkWeightedWSSInCluster(data *dat, uint64_t n, uint6
     data *pti = (data *)c[indK].head;  
     for(i=0;i<c[indK].nbData;i++)
     {
-        wss += CLUSTER_computeSquaredDistanceWeightedPointToCluster(pti, p, &(c[indK]), DISTANCE_EUCLIDEAN, (double *)c[indK].fw, pti->ow)/(double)c[indK].nbData;
+        wss += CLUSTER_computeSquaredDistanceWeightedPointToCluster(pti, p, &(c[indK]), DISTANCE_EUCLIDEAN, (double *)c[indK].fw, pti->ow);
 
         // Update pt
         pti = (data *)pti->succ;
